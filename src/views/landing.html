@@ -54,7 +54,7 @@
              (500 → 600): the standard "lift without moving" button hover.
              data-goto="auth": the trial funnel starts at the auth screen —
              a real destination beats href="#" silence. -->
-        <a href="#" data-goto="auth" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none">
+        <a href="#" data-goto="auth" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]">
           Start free
         </a>
       </div>
@@ -104,7 +104,7 @@
         <!-- Button row: flex-wrap lets it break to two lines on narrow phones
              instead of overflowing. gap-3 = space between buttons. -->
         <div class="mt-8 flex flex-wrap items-center gap-3">
-          <a href="#" data-goto="auth" class="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none">
+          <a href="#" data-goto="auth" class="rounded-full bg-brand-600 px-6 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]">
             Start 14-day trial
           </a>
           <!-- Secondary button: outline style = border + transparent bg.
@@ -205,15 +205,14 @@
            gap-6 keeps generous gutters; each card gets p-6 of internal air. -->
       <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <!-- CARD TEMPLATE (repeated 6× with different icon/colors/text)
-             group          = hover scope marker, no styles of its own
-             transition     = smooth the hover changes (translate, shadow, colors)
-             hover:-translate-y-1  = lift 4px on hover (0.25rem × -1)
-             hover:shadow-lg      = richer shadow while lifted
-             BOTH require transition or they snap. -->
-        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+             group = hover scope marker — the icon tile inverts on card hover.
+             NO lift, NO resting shadow: these cards aren't clickable, and a
+             lift animation on dead content pretends otherwise. (flat rule:
+             hover elevation is reserved for interactive cards.) -->
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <!-- Icon tile: parent `group` hovered → tile inverts via group-hover:.
-               transition lives HERE too — the tile's color change must animate
-               independently of the card's lift. -->
+               transition lives on the TILE itself — its color swap animates
+               without any hover state on the card. -->
           <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-950 dark:text-indigo-400 dark:group-hover:bg-indigo-500 dark:group-hover:text-white" aria-hidden="true">
             <span class="text-lg font-bold">01</span>
           </div>
@@ -225,7 +224,7 @@
           </p>
         </div>
 
-        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 transition group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950 dark:text-emerald-400 dark:group-hover:bg-emerald-500 dark:group-hover:text-white" aria-hidden="true">
             <span class="text-lg font-bold">02</span>
           </div>
@@ -237,7 +236,7 @@
           </p>
         </div>
 
-        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600 transition group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950 dark:text-amber-400 dark:group-hover:bg-amber-500 dark:group-hover:text-white" aria-hidden="true">
             <span class="text-lg font-bold">03</span>
           </div>
@@ -250,7 +249,7 @@
           </p>
         </div>
 
-        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 text-sky-600 transition group-hover:bg-sky-600 group-hover:text-white dark:bg-sky-950 dark:text-sky-400 dark:group-hover:bg-sky-500 dark:group-hover:text-white" aria-hidden="true">
             <span class="text-lg font-bold">04</span>
           </div>
@@ -262,8 +261,8 @@
           </p>
         </div>
 
-        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
-          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-100 text-rose-600 transition group-hover:bg-rose-600 group-hover:text-white dark:bg-rose-950 dark:text-rose-400 dark:group-hover:bg-rose-500 dark:group-hover:text-white" aria-hidden="true">
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 text-red-600 transition group-hover:bg-red-600 group-hover:text-white dark:bg-red-950 dark:text-red-400 dark:group-hover:bg-red-500 dark:group-hover:text-white" aria-hidden="true">
             <span class="text-lg font-bold">05</span>
           </div>
           <h3 class="mt-4 font-semibold">Only what you use</h3>
@@ -273,7 +272,7 @@
           </p>
         </div>
 
-        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-violet-600 transition group-hover:bg-violet-600 group-hover:text-white dark:bg-violet-950 dark:text-violet-400 dark:group-hover:bg-violet-500 dark:group-hover:text-white" aria-hidden="true">
             <span class="text-lg font-bold">06</span>
           </div>
@@ -382,7 +381,7 @@
         <h2 class="text-3xl font-bold text-white sm:text-4xl">Ready to build something great?</h2>
         <p class="max-w-xl text-indigo-100">Join 12,000+ developers shipping interfaces with this library.</p>
         <!-- Inverted button: white on gradient = high contrast, hover to slight transparency. -->
-        <a href="#" data-goto="auth" class="rounded-full bg-white px-6 py-3 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none">
+        <a href="#" data-goto="auth" class="rounded-full bg-white px-6 py-3 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none">
           Get started — it’s free
         </a>
       </div>

@@ -198,7 +198,7 @@ const AVATAR_STYLES = [
   'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
   'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
   'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
-  'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
+  'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
   'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
   'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300',
 ]
@@ -600,7 +600,7 @@ function initChat(root) {
   // table ships a row template.)
   const ME = 'max-w-[80%] self-end rounded-2xl rounded-br-sm bg-brand-600 px-4 py-2.5 text-sm leading-relaxed text-white'
   const AI =
-    'max-w-[80%] self-start rounded-2xl rounded-bl-sm border bg-white px-4 py-2.5 text-sm leading-relaxed text-gray-800 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200'
+    'max-w-[80%] self-start rounded-2xl rounded-bl-sm border bg-white px-4 py-2.5 text-sm leading-relaxed text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200'
 
   // --- History: ONE element, two modes ------------------------------------
   const chatMobile = matchMedia('(max-width: 767px)') // md = 768px
@@ -895,7 +895,7 @@ function initShop(root) {
       btn.setAttribute('aria-pressed', String(on))
       const glyph = btn.querySelector('[aria-hidden]')
       if (glyph) glyph.textContent = on ? '♥' : '♡'
-      btn.classList.toggle('text-rose-500', on)
+      btn.classList.toggle('text-red-500', on)
       const product = btn.getAttribute('aria-label')?.replace('Save ', '') ?? 'Item'
       showToast(on ? `${product} saved` : `${product} removed from saved`)
     })

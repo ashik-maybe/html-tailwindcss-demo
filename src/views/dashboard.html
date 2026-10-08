@@ -25,7 +25,7 @@
            Breadcrumbs: ol (ordered — hierarchy matters to screen readers),
            each crumb after the first prefixed with "/" as a chevron stand-in. -->
       <div>
-        <h1 class="text-lg font-semibold">Dashboard</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
         <ol class="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400" aria-label="Breadcrumb">
           <li>Home</li>
           <li aria-hidden="true">/</li>
@@ -46,7 +46,7 @@
           <span aria-hidden="true">🔔</span>
           <!-- Badge dot: absolute + top-right + translate to sit on the corner.
                ring-2 ring-white cuts a notch so the dot reads over any bg. -->
-          <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-gray-900" aria-hidden="true"></span>
+          <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" aria-hidden="true"></span>
         </button>
 
         <!-- ===================== PROFILE DROPDOWN =====================
@@ -103,7 +103,7 @@
             </a>
             <!-- Separator: border-t + margin, not a <hr> — lighter DOM. -->
             <div class="my-1.5 border-t border-gray-100 dark:border-gray-800"></div>
-            <a href="#" role="menuitem" data-goto="auth" class="block rounded-lg px-3 py-2 text-sm text-rose-600 transition hover:bg-rose-50 focus-visible:bg-rose-50 focus-visible:outline-none dark:text-rose-400 dark:hover:bg-rose-950/50">
+            <a href="#" role="menuitem" data-goto="auth" class="block rounded-lg px-3 py-2 text-sm text-red-600 transition hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none dark:text-red-400 dark:hover:bg-red-950/50">
               Sign out
             </a>
           </div>
@@ -114,8 +114,8 @@
 
   <!-- NOT <main>: the shell already owns one (index.html) — nested <main>
        is invalid and breaks the screen-reader landmark outline. -->
-  <div class="mx-auto max-w-7xl space-y-6 px-6 py-6">
-    <!-- space-y-6 = vertical rhythm between sections (24px) — one class,
+  <div class="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6">
+    <!-- space-y-8 = vertical rhythm between sections (32px) — one class,
          no margins to manage. Only spaces DIRECT children (margin-collapse
          gotchas disappear vs. manual mt-* everywhere). -->
 
@@ -131,7 +131,7 @@
          ====================================================================== -->
     <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Key metrics">
       <!-- CARD TEMPLATE ×4 — only numbers/badges change -->
-      <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
         <div class="flex items-center justify-between">
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total revenue</p>
           <span class="text-lg" aria-hidden="true">💰</span>
@@ -152,7 +152,7 @@
         </div>
       </article>
 
-      <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
         <div class="flex items-center justify-between">
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active users</p>
           <span class="text-lg" aria-hidden="true">👥</span>
@@ -166,24 +166,24 @@
         </div>
       </article>
 
-      <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
         <div class="flex items-center justify-between">
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Churn rate</p>
           <span class="text-lg" aria-hidden="true">📉</span>
         </div>
         <p class="mt-2 text-2xl font-bold tabular-nums">2.3%</p>
         <div class="mt-3 flex items-center gap-2">
-          <!-- TREND PILL — negative: rose (red) palette, SAME geometry.
+          <!-- TREND PILL — negative: red palette, SAME geometry.
                Positive vs negative distinguished by COLOR + arrow glyph —
                ship both signals, color alone fails for colorblind users. (a11y) -->
-          <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-950 dark:text-rose-400">
+          <span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-400">
             <span aria-hidden="true">↑</span> 0.4%
           </span>
           <span class="text-xs text-gray-400">vs last month</span>
         </div>
       </article>
 
-      <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
         <div class="flex items-center justify-between">
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Conversion</p>
           <span class="text-lg" aria-hidden="true">🎯</span>
@@ -206,7 +206,7 @@
          ====================================================================== -->
     <div class="grid gap-6 lg:grid-cols-3">
       <!-- MOCK CHART -->
-      <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm lg:col-span-2 dark:border-gray-800 dark:bg-gray-900">
+      <section class="rounded-2xl border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-gray-800 dark:bg-gray-900">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="font-semibold">Revenue overview</h2>
@@ -266,7 +266,7 @@
       </section>
 
       <!-- RECENT ACTIVITY -->
-      <section class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <section class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
           <h2 class="font-semibold">Recent activity</h2>
           <a href="#" data-toast="Full activity log — not in this demo" class="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">View all</a>
@@ -299,7 +299,7 @@
             </div>
           </li>
           <li class="flex items-start gap-3 px-5 py-3.5">
-            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-100 text-xs text-rose-700 dark:bg-rose-950 dark:text-rose-400" aria-hidden="true">×</span>
+            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-xs text-red-700 dark:bg-red-950 dark:text-red-400" aria-hidden="true">×</span>
             <div class="min-w-0">
               <p class="text-sm">Subscription cancelled</p>
               <p class="text-xs text-gray-400">3 hr ago</p>

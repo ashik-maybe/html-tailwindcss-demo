@@ -78,15 +78,15 @@
          ====================================================================== -->
   <section class="flex items-center justify-center p-6 sm:p-10">
     <!-- Card: max-w-md caps width (~28rem) — long inputs unreadable beyond.
-         w-full = fill until the cap. shadow-sm lifts it off the bg-gray-50. -->
-    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+         w-full = fill until the cap. lifts it off the bg-gray-50. -->
+    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
       <!-- Mobile-only brand (left panel is hidden below lg). -->
       <div class="mb-6 flex items-center gap-2 font-bold lg:hidden">
         <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 text-sm text-white">N</span>
         Nimbus
       </div>
 
-      <h1 class="text-xl font-semibold">Sign in</h1>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Sign in</h1>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         Welcome back. Enter your details below.
       </p>
@@ -101,7 +101,7 @@
         id="auth-error"
         role="alert"
         tabindex="-1"
-        class="mt-5 hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 focus:outline-none dark:border-rose-900 dark:bg-rose-950/60 dark:text-rose-300"
+        class="mt-5 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 focus:outline-none dark:border-red-900 dark:bg-red-950/60 dark:text-red-300"
       >
         <p class="flex items-start gap-2">
           <span aria-hidden="true">⚠️</span>
@@ -152,14 +152,14 @@
            (real apps disable native validation ONLY when replacing it). -->
       <form class="space-y-4" data-auth-form novalidate>
         <div>
-          <label for="au-email" class="block text-sm font-medium">Email</label>
+          <label for="au-email" class="mb-1.5 block text-sm font-medium">Email</label>
           <input
             id="au-email"
             type="email"
             required
             autocomplete="email"
             placeholder="you@example.com"
-            class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500"
           />
         </div>
 
@@ -167,7 +167,7 @@
           <!-- Sibling row, NOT a link inside <label>: interactive content
                inside a label double-activates (one click both follows the
                href AND toggles the input). flex row keeps the visual layout. -->
-          <div class="flex items-center justify-between">
+          <div class="mb-1.5 flex items-center justify-between">
             <label for="au-pass" class="text-sm font-medium">Password</label>
             <a
               href="#"
@@ -183,7 +183,7 @@
             required
             autocomplete="current-password"
             placeholder="••••••••"
-            class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500"
           />
         </div>
 
@@ -201,7 +201,7 @@
              the loudest treatment and top-level focus ring. -->
         <button
           type="submit"
-          class="w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+          class="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
         >
           Sign in
         </button>

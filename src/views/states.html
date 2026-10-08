@@ -7,7 +7,17 @@
   looks good with data in it isn't finished — async is the normal case.
   ============================================================================
 -->
-<div class="mx-auto max-w-4xl space-y-10 px-4 py-6 sm:px-6">
+<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">UI states</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Loading, empty, error and toast — design these BEFORE the happy path.
+    </p>
+  </header>
+
+  <!-- Rhythm: header→content mt-6, section↔section space-y-8 (32px) -->
+  <div class="mt-6 space-y-8">
 
   <!-- ============================ LOADING ============================ -->
   <section aria-labelledby="loading-title">
@@ -84,7 +94,7 @@
       <button
         type="button"
         data-toast="New project flow — not in this demo"
-        class="mt-5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+        class="mt-5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
       >
         + New project
       </button>
@@ -160,7 +170,7 @@
       <button
         type="button"
         data-toast="Saved successfully"
-        class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+        class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
       >
         Show success toast
       </button>
@@ -173,4 +183,6 @@
       </button>
     </div>
   </section>
+</div>
+  </div><!-- /sections -->
 </div>

@@ -13,7 +13,7 @@
   - Sticky save bar: sticks to the viewport bottom while the panel scrolls.
   ============================================================================
 -->
-<div class="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6">
+<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6">
 
   <header>
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
@@ -21,6 +21,9 @@
       Profile, billing and notifications for this demo account.
     </p>
   </header>
+
+  <!-- Rhythm: header→content mt-6, section↔section space-y-8 (32px) -->
+  <div class="mt-6 space-y-8">
 
   <!-- Avatar row -->
   <section
@@ -111,7 +114,7 @@
             id="set-name"
             type="text"
             value="Ashik Maybe"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
         <div>
@@ -120,7 +123,7 @@
             class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >Username</label
           >
-          <div class="flex items-center rounded-lg border border-gray-300 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800">
+          <div class="flex items-center rounded-xl border border-gray-300 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500 dark:border-gray-700 dark:bg-gray-800">
             <span class="pl-3 text-sm text-gray-400">@</span>
             <input
               id="set-handle"
@@ -144,7 +147,7 @@
             id="set-bio"
             rows="3"
             placeholder="Anything you want visitors to know…"
-            class="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full resize-none rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           ></textarea>
         </div>
       </div>
@@ -170,7 +173,7 @@
           <button
             type="button"
             data-profile-save
-            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
           >
             Save changes
           </button>
@@ -201,7 +204,7 @@
           <button
             type="button"
             data-toast="Plan upgrade flow — not in this demo"
-            class="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+            class="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none active:scale-[0.98] focus-visible:ring-offset-2"
           >
             Upgrade
           </button>
@@ -391,4 +394,5 @@
       </div>
     </div>
   </dialog>
+  </div><!-- /sections -->
 </div>

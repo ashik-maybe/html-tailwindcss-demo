@@ -18,7 +18,7 @@
   <header class="flex flex-wrap items-end justify-between gap-3">
     <div>
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Blog</h1>
-      <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         Notes on interfaces, CSS and shipping small.
       </p>
     </div>
@@ -71,7 +71,7 @@
   <!-- Featured post -->
   <article
     data-cat="css"
-    class="group mt-6 overflow-hidden rounded-2xl border bg-white dark:border-gray-800 dark:bg-gray-900"
+    class="group mt-6 overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
   >
     <!-- Cover: fixed height + gradient = stable CLS-free hero.
          group-hover zooms it — same trick as the shop card image. -->
@@ -126,7 +126,7 @@
         <a
           href="#"
           data-toast="Article page — not in this demo"
-          class="ml-auto rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+          class="ml-auto rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
           >Read article</a
         >
       </div>
@@ -134,7 +134,7 @@
   </article>
 
   <!-- Latest posts: 3-up grid (1 col on phones) -->
-  <h2 class="mt-10 mb-4 text-lg font-semibold text-gray-900 dark:text-white">Latest</h2>
+  <h2 class="mt-8 mb-4 text-lg font-semibold text-gray-900 dark:text-white">Latest</h2>
   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
     <article
       data-cat="layout"
@@ -178,10 +178,10 @@
       data-cat="design"
       class="overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
     >
-      <div class="h-32 bg-linear-to-br from-rose-400 to-red-500" aria-hidden="true"></div>
+      <div class="h-32 bg-linear-to-br from-red-400 to-red-500" aria-hidden="true"></div>
       <div class="p-4">
         <span
-          class="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-medium text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+          class="rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700 dark:bg-red-950 dark:text-red-300"
           >Design</span
         >
         <h3 class="mt-2 font-semibold text-gray-900 dark:text-white">
