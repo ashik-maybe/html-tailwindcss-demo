@@ -475,11 +475,146 @@ function initStates(root) {
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return
   closeDrawer()
+  closePalette() // hoisted function declaration below — safe to call
   // Also collapse any open dropdown (same rules as outside-click close).
   document.querySelectorAll('[data-dropdown-menu]:not(.hidden)').forEach((menu) => {
     menu.classList.add('hidden')
     menu.closest('[data-dropdown]')?.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'false')
   })
+})
+
+// -----------------------------------------------------------------------------
+// Command palette (⌘K / Ctrl+K) — shell-level, works on every view
+// -----------------------------------------------------------------------------
+// Entries are DERIVED from the sidebar's own [data-view] buttons — one source
+// of truth. Add a nav button tomorrow and the palette picks it up with zero
+// extra wiring. Labels = the text nodes only, so the emoji <span> is skipped.
+// -----------------------------------------------------------------------------
+const paletteEl = document.querySelector('#palette')
+const paletteInput = document.querySelector('#palette-input')
+const paletteList = document.querySelector('#palette-list')
+
+const paletteEntries = [...document.querySelectorAll('[data-view]')].map((btn) => ({
+  id: btn.dataset.view,
+  label: [...btn.childNodes]
+    .filter((node) => node.nodeType === Node.TEXT_NODE)
+    .map((node) => node.textContent)
+    .join('')
+    .trim(),
+  emoji: btn.querySelector('span')?.textContent ?? '',
+}))
+
+let paletteFiltered = paletteEntries
+let paletteActive = 0
+
+function renderPalette(query = '') {
+  const q = query.trim().toLowerCase()
+  paletteFiltered = paletteEntries.filter((entry) => entry.label.toLowerCase().includes(q))
+  paletteActive = 0
+
+  if (!paletteFiltered.length) {
+    paletteList.innerHTML =
+      '<li role="option" aria-disabled="true" class="px-3 py-6 text-center text-sm text-gray-400 dark:text-gray-500">No matching views</li>'
+    return
+  }
+
+  // innerHTML is safe HERE because only static repo strings are interpolated.
+  // The user's query is used for filtering only, never pasted into markup —
+  // interpolating it would be a reflected-XSS hole. Keep that line intact.
+  paletteList.innerHTML = paletteFiltered
+    .map(
+      (entry, i) => `
+      <li
+        role="option"
+        aria-selected="${i === 0}"
+        data-palette-id="${entry.id}"
+        class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+          i === 0
+            ? 'bg-brand-50 text-brand-700 dark:bg-gray-800 dark:text-brand-300'
+            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+        }"
+      >
+        <span aria-hidden="true">${entry.emoji}</span>
+        ${entry.label}
+      </li>`,
+    )
+    .join('')
+}
+
+function setPaletteActive(next) {
+  if (!paletteFiltered.length) return
+  // Wrap-around: ArrowUp from first lands on last (like every OS launcher).
+  paletteActive = (next + paletteFiltered.length) % paletteFiltered.length
+
+  ;[...paletteList.children].forEach((li, i) => {
+    const on = i === paletteActive
+    li.setAttribute('aria-selected', String(on))
+    li.classList.toggle('bg-brand-50', on)
+    li.classList.toggle('text-brand-700', on)
+    li.classList.toggle('dark:bg-gray-800', on)
+    li.classList.toggle('dark:text-brand-300', on)
+    li.classList.toggle('text-gray-700', !on)
+    li.classList.toggle('dark:text-gray-300', !on)
+  })
+
+  // nearest = scroll only as far as needed; 'auto' would jerk the list.
+  paletteList.children[paletteActive]?.scrollIntoView({ block: 'nearest' })
+}
+
+function openPalette() {
+  paletteEl.classList.remove('hidden')
+  paletteInput.value = ''
+  renderPalette() // full list on open — muscle memory beats typing
+  paletteInput.focus()
+}
+
+function closePalette() {
+  // Idempotent: Escape fires even when the palette never opened.
+  paletteEl.classList.add('hidden')
+}
+
+document.querySelector('#palette-open')?.addEventListener('click', openPalette)
+
+// Backdrop dismiss: click landed on #palette-backdrop specifically (the
+// card is a sibling), so card clicks never reach this branch.
+document.querySelector('#palette-backdrop')?.addEventListener('click', closePalette)
+
+paletteInput.addEventListener('input', () => renderPalette(paletteInput.value))
+
+paletteInput.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowDown') {
+    event.preventDefault() // stop the caret from doing anything visual
+    setPaletteActive(paletteActive + 1)
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    setPaletteActive(paletteActive - 1)
+  } else if (event.key === 'Enter') {
+    const entry = paletteFiltered[paletteActive]
+    if (entry) {
+      closePalette()
+      switchView(entry.id)
+    }
+  }
+  // Escape: bubbles up to the global handler → closePalette() + drawer.
+})
+
+// Mouse path (delegated — list items are re-rendered on every keystroke,
+// so per-item listeners would leak every render).
+paletteList.addEventListener('click', (event) => {
+  const item = event.target.closest('[data-palette-id]')
+  if (!item) return
+  closePalette()
+  switchView(item.dataset.paletteId)
+})
+
+// ⌘K on macOS, Ctrl+K everywhere else. metaKey || ctrlKey covers both with
+// one condition — the palette is expected on both platforms.
+document.addEventListener('keydown', (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault() // browsers reserve Ctrl+K (search in some) —
+    // preventDefault keeps the shortcut ours.
+    paletteEl.classList.contains('hidden') ? openPalette() : closePalette()
+  }
 })
 
 // -----------------------------------------------------------------------------

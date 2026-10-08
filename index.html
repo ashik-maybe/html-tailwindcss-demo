@@ -97,6 +97,23 @@
         <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Real-world page patterns</p>
       </div>
 
+      <!-- Cmd/Ctrl+K palette trigger. <kbd> is the semantic key element —
+           styled like a keycap, announced as "keyboard key" by some AT. -->
+      <div class="px-3 pt-3">
+        <button
+          id="palette-open"
+          type="button"
+          class="flex w-full items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 transition hover:border-gray-300 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300"
+        >
+          <span aria-hidden="true">⌕</span>
+          Jump to view…
+          <kbd
+            class="ml-auto rounded border border-gray-300 bg-white px-1.5 py-0.5 font-mono text-[10px] text-gray-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400"
+            >⌘K</kbd
+          >
+        </button>
+      </div>
+
       <!--
         NAVIGATION
         Each button carries data-view="<id>" — src/main.js listens for clicks
@@ -272,7 +289,7 @@
           <span aria-hidden="true">◐</span>
           Toggle dark mode
         </button>
-        <p class="px-3 pt-2 text-[11px] text-gray-400 dark:text-gray-500">Phase 5 of 6 — 11 views</p>
+        <p class="px-3 pt-2 text-[11px] text-gray-400 dark:text-gray-500">11 views · all phases complete</p>
       </div>
     </aside>
 
@@ -303,6 +320,53 @@
            programmatic focus land here after a view switch (a11y: keyboard
            users continue from the new content, not the old nav position). -->
     </main>
+
+    <!--
+      COMMAND PALETTE (⌘K / Ctrl+K)
+      Shell-level dialog — NOT inside #view — because the shortcut must work
+      on every screen. Two layers: backdrop (click to dismiss) + card.
+      Hidden entirely with .hidden when closed (no focusable children leak
+      into the tab order). JS lives in src/main.js.
+    -->
+    <div
+      id="palette"
+      class="fixed inset-0 z-50 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Command palette"
+    >
+      <div id="palette-backdrop" class="absolute inset-0 bg-black/50"></div>
+      <div
+        class="relative mx-auto mt-[15vh] w-[calc(100%-2rem)] max-w-lg overflow-hidden rounded-2xl border bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900"
+      >
+        <!-- aria-controls links input → list for AT; the list itself is
+             role=listbox with role=option children (combobox pattern lite) -->
+        <input
+          id="palette-input"
+          type="text"
+          autocomplete="off"
+          placeholder="Jump to a view…"
+          aria-label="Search views"
+          aria-controls="palette-list"
+          class="w-full border-b bg-transparent px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none dark:text-white dark:placeholder:text-gray-500"
+        />
+        <ul
+          id="palette-list"
+          role="listbox"
+          aria-label="Views"
+          class="max-h-72 overflow-y-auto p-2"
+        >
+          <!-- Items rendered by JS from the nav's own data-view buttons -->
+        </ul>
+        <div
+          class="flex gap-4 border-t px-4 py-2 text-[11px] text-gray-400 dark:border-gray-800 dark:text-gray-500"
+        >
+          <span><kbd class="font-mono">↑↓</kbd> navigate</span>
+          <span><kbd class="font-mono">↵</kbd> open</span>
+          <span><kbd class="font-mono">Esc</kbd> close</span>
+        </div>
+      </div>
+    </div>
 
     <!--
       TOAST HOST — lives in the shell, outside #view, so messages SURVIVE
