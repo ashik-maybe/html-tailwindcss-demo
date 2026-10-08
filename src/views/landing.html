@@ -22,7 +22,10 @@
                        the /80 opacity lets the blur show through.
        z-20          = above hero content, below the app drawer (z-40).
        ======================================================================== -->
-  <header class="sticky top-0 z-20 border-b border-gray-200/60 bg-white/80 backdrop-blur-md dark:border-gray-800/60 dark:bg-gray-950/80">
+  <!-- top-14 lg:top-0: below lg the shell's fixed top bar (3.5rem, z-30)
+       owns the viewport top — sticky at top-0 would slide UNDER it and get
+       hidden while scrolling. lg:top-0 returns to the plain sticky nav. -->
+  <header class="sticky top-14 z-20 border-b border-gray-200/60 bg-white/80 backdrop-blur-md lg:top-0 dark:border-gray-800/60 dark:bg-gray-950/80">
     <!-- max-w-7xl px-6 = centred, capped content width (80rem) with gutters.
          justify-between pushes logo left, actions right — classic flex bar. -->
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -54,7 +57,9 @@
     </div>
   </header>
 
-  <main>
+  <!-- NOT <main>: the shell already owns one (index.html). Two <main>
+       landmarks in one document is invalid HTML and splits the AT outline. -->
+  <div>
     <!-- =========================================================================
          HERO
          grid gap-12 lg:grid-cols-2 — ONE column on phones/tablets, two ≥1024px.
@@ -378,7 +383,7 @@
         </a>
       </div>
     </section>
-  </main>
+  </div>
 
   <!-- ===========================================================================
        FOOTER — 4 link columns.

@@ -97,6 +97,18 @@ function switchView(id) {
   viewEl.focus({ preventScroll: true })
 }
 
+// Collapse a dropdown menu — used by outside-click AND Escape so both paths
+// behave identically. Focus check first: if a keyboard user was tabbing
+// INSIDE the menu, hiding it would strand focus on a display:none element
+// (focus jumps to <body>, Tab restarts from the top of the page). Moving
+// focus back to the trigger keeps the user where they were. (a11y)
+function collapseDropdown(menu) {
+  const trig = menu.closest('[data-dropdown]')?.querySelector('[data-dropdown-trigger]')
+  if (menu.contains(document.activeElement)) trig?.focus()
+  menu.classList.add('hidden')
+  trig?.setAttribute('aria-expanded', 'false')
+}
+
 // -----------------------------------------------------------------------------
 // Event delegation — ONE click listener for every interactive widget
 // -----------------------------------------------------------------------------
@@ -132,11 +144,7 @@ document.addEventListener('click', (event) => {
   //    every open menu. querySelectorAll + toggle keeps it idempotent
   //    (safe even when nothing is open).
   if (!event.target.closest('[data-dropdown]')) {
-    document.querySelectorAll('[data-dropdown-menu]:not(.hidden)').forEach((menu) => {
-      menu.classList.add('hidden')
-      const trig = menu.closest('[data-dropdown]')?.querySelector('[data-dropdown-trigger]')
-      trig?.setAttribute('aria-expanded', 'false')
-    })
+    document.querySelectorAll('[data-dropdown-menu]:not(.hidden)').forEach(collapseDropdown)
   }
 })
 
@@ -229,6 +237,7 @@ function openDrawer() {
   sidebarEl.classList.remove('-translate-x-full')
   backdropEl.classList.remove('hidden')
   drawerOpenBtn.setAttribute('aria-expanded', 'true')
+  syncDrawerInert()
 }
 
 function closeDrawer() {
@@ -237,7 +246,28 @@ function closeDrawer() {
   sidebarEl.classList.add('-translate-x-full')
   backdropEl.classList.add('hidden')
   drawerOpenBtn.setAttribute('aria-expanded', 'false')
+  syncDrawerInert()
 }
+
+// The off-screen drawer still contains focusable things (nav, ⌘K trigger,
+// theme toggle). Without this, Tab on mobile walks into an invisible
+// sidebar — focus vanishes with no way to see where it went. `inert` =
+// not focusable, not clickable, skipped by screen readers — the modern
+// replacement for the tabindex="-1" dance. Only applied when the sidebar is
+// BOTH translated away AND actually below the lg breakpoint (CSS shows it
+// again at lg no matter the transform class).
+const mobileMedia = matchMedia('(max-width: 1023px)')
+
+function syncDrawerInert() {
+  const offscreen = sidebarEl.classList.contains('-translate-x-full')
+  sidebarEl.inert = mobileMedia.matches && offscreen
+}
+
+// Viewport crossings change which side of the rule we're on: rotating a
+// phone or resizing must re-evaluate, or a desktop-opened sidebar could
+// arrive on mobile focusable-but-hidden (or vice versa).
+mobileMedia.addEventListener('change', syncDrawerInert)
+syncDrawerInert() // initial state (page may boot below lg with drawer closed)
 
 drawerOpenBtn.addEventListener('click', openDrawer)
 backdropEl.addEventListener('click', closeDrawer)
@@ -476,11 +506,9 @@ document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return
   closeDrawer()
   closePalette() // hoisted function declaration below — safe to call
-  // Also collapse any open dropdown (same rules as outside-click close).
-  document.querySelectorAll('[data-dropdown-menu]:not(.hidden)').forEach((menu) => {
-    menu.classList.add('hidden')
-    menu.closest('[data-dropdown]')?.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'false')
-  })
+  // Also collapse any open dropdown (same rules as outside-click close;
+  // collapseDropdown moves focus to the trigger first if it was inside).
+  document.querySelectorAll('[data-dropdown-menu]:not(.hidden)').forEach(collapseDropdown)
 })
 
 // -----------------------------------------------------------------------------
@@ -561,7 +589,11 @@ function setPaletteActive(next) {
   paletteList.children[paletteActive]?.scrollIntoView({ block: 'nearest' })
 }
 
+let paletteOpener = null // element that had focus when the palette opened
+
 function openPalette() {
+  // Stash BEFORE moving focus — used to hand focus back on close (a11y).
+  paletteOpener = document.activeElement
   paletteEl.classList.remove('hidden')
   paletteInput.value = ''
   renderPalette() // full list on open — muscle memory beats typing
@@ -570,8 +602,29 @@ function openPalette() {
 
 function closePalette() {
   // Idempotent: Escape fires even when the palette never opened.
+  const wasOpen = !paletteEl.classList.contains('hidden')
   paletteEl.classList.add('hidden')
+  if (!wasOpen) return
+
+  // Focus must land SOMEWHERE visible. Falling back to <body> loses the
+  // user's Tab position entirely — return to the opener when we have one.
+  if (paletteOpener instanceof HTMLElement && paletteOpener !== document.body) {
+    paletteOpener.focus()
+  } else {
+    document.querySelector('#palette-open')?.focus()
+  }
+  paletteOpener = null
 }
+
+// Minimal modal focus trap: the input is the palette's ONLY focusable
+// element, so Tab (either direction) simply pins focus back on it instead
+// of escaping into the page behind the overlay. (a11y)
+paletteEl.addEventListener('keydown', (event) => {
+  if (event.key === 'Tab') {
+    event.preventDefault()
+    paletteInput.focus()
+  }
+})
 
 document.querySelector('#palette-open')?.addEventListener('click', openPalette)
 
@@ -613,6 +666,12 @@ document.addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault() // browsers reserve Ctrl+K (search in some) —
     // preventDefault keeps the shortcut ours.
+
+    // A native <dialog> renders in the TOP LAYER — no z-index on a plain
+    // div can paint above it, so the palette would open invisibly and
+    // focus() would be rejected. Close dialogs first, then toggle.
+    document.querySelectorAll('dialog[open]').forEach((dlg) => dlg.close())
+
     paletteEl.classList.contains('hidden') ? openPalette() : closePalette()
   }
 })

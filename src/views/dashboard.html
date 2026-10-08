@@ -14,10 +14,11 @@
        TOP NAVBAR (view-local — NOT the app shell chrome)
        Real dashboards nest their own navbar inside the content area.
        justify-between = title left, actions right.
-       sticky top-0 z-10 = pins under the viewport top while the dashboard
-       scrolls (z-10 keeps it under the app drawer's z-40 but over content).
+       sticky top-14 lg:top-0 = pins below the shell's fixed mobile top bar
+       (3.5rem) and at the plain viewport top on desktop; z-10 keeps it under
+       the app drawer's z-40 but over content.
        ======================================================================== -->
-  <header class="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/80">
+  <header class="sticky top-14 z-10 border-b border-gray-200 bg-white/80 backdrop-blur-md lg:top-0 dark:border-gray-800 dark:bg-gray-900/80">
     <div class="flex items-center justify-between gap-4 px-6 py-3">
       <!-- Page title + breadcrumb trail.
            Breadcrumbs: ol (ordered — hierarchy matters to screen readers),
@@ -105,7 +106,9 @@
     </div>
   </header>
 
-  <main class="mx-auto max-w-7xl space-y-6 px-6 py-6">
+  <!-- NOT <main>: the shell already owns one (index.html) — nested <main>
+       is invalid and breaks the screen-reader landmark outline. -->
+  <div class="mx-auto max-w-7xl space-y-6 px-6 py-6">
     <!-- space-y-6 = vertical rhythm between sections (24px) — one class,
          no margins to manage. Only spaces DIRECT children (margin-collapse
          gotchas disappear vs. manual mt-* everywhere). -->
@@ -301,5 +304,5 @@
         </ul>
       </section>
     </div>
-  </main>
+  </div>
 </div>
