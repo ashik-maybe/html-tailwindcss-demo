@@ -183,6 +183,16 @@
               Settings
             </button>
           </li>
+          <li>
+            <button
+              type="button"
+              data-view="states"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-600 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              <span aria-hidden="true">🧪</span>
+              Loading &amp; States
+            </button>
+          </li>
         </ul>
 
         <!-- GROUP: Forms -->
@@ -212,9 +222,42 @@
           </li>
         </ul>
 
-        <!-- Utility group (faq, states) arrives in Phase 5 -->
-
-        <div class="mt-5 space-y-1" data-group-placeholder></div>
+        <!-- GROUP: Content -->
+        <p class="px-2 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          Content
+        </p>
+        <ul class="space-y-1">
+          <li>
+            <button
+              type="button"
+              data-view="shop"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-600 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              <span aria-hidden="true">🛍️</span>
+              Shop
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              data-view="blog"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-600 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              <span aria-hidden="true">📝</span>
+              Blog
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              data-view="faq"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-600 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              <span aria-hidden="true">❓</span>
+              FAQ
+            </button>
+          </li>
+        </ul>
       </nav>
 
       <!-- Sidebar footer: dark-mode toggle + phase hint -->
@@ -229,7 +272,7 @@
           <span aria-hidden="true">◐</span>
           Toggle dark mode
         </button>
-        <p class="px-3 pt-2 text-[11px] text-gray-400 dark:text-gray-500">Phase 4 of 6 — 7 views</p>
+        <p class="px-3 pt-2 text-[11px] text-gray-400 dark:text-gray-500">Phase 5 of 6 — 11 views</p>
       </div>
     </aside>
 
@@ -260,6 +303,19 @@
            programmatic focus land here after a view switch (a11y: keyboard
            users continue from the new content, not the old nav position). -->
     </main>
+
+    <!--
+      TOAST HOST — lives in the shell, outside #view, so messages SURVIVE
+      view switches (a toast fired from Shop still fades while you're on FAQ).
+      aria-live="polite" = screen readers announce each new child WITHOUT
+      interrupting whatever they're reading. (a11y)
+      Nothing is rendered here until src/main.js showToast() appends.
+    -->
+    <div
+      id="toast-host"
+      aria-live="polite"
+      class="pointer-events-none fixed right-4 bottom-4 z-50 flex flex-col items-end gap-2"
+    ></div>
 
     <script type="module" src="/src/main.js"></script>
   </body>

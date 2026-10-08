@@ -22,6 +22,10 @@ import checkout from './views/checkout.html?raw'
 import auth from './views/auth.html?raw'
 import chat from './views/chat.html?raw'
 import settings from './views/settings.html?raw'
+import shop from './views/shop.html?raw'
+import blog from './views/blog.html?raw'
+import faq from './views/faq.html?raw'
+import states from './views/states.html?raw'
 
 // Entry shape: { html, init? }. init(root) runs after the HTML is injected
 // and gets the fresh subtree — attach DIRECT listeners there to widgets that
@@ -36,6 +40,10 @@ const views = {
   auth: { html: auth },
   chat: { html: chat, init: initChat },
   settings: { html: settings, init: initSettings },
+  shop: { html: shop, init: initShop },
+  blog: { html: blog }, // only the delegated newsletter handler — no init
+  faq: { html: faq }, // native <details>, zero JS by design
+  states: { html: states, init: initStates },
 }
 
 // Element references — query once at load, reuse forever.
@@ -270,7 +278,39 @@ document.addEventListener('submit', (event) => {
     // there, screen reader users hear role="alert" read out. (a11y)
     alert.focus({ preventScroll: false })
   }
+
+  // Newsletter (blog.html): native `required` + `type=email` already
+  // validated before submit fires — browser constraint validation means we
+  // only handle the success path here.
+  if (event.target.matches('[data-newsletter]')) {
+    event.preventDefault()
+    event.target.reset() // clear the input like a real submit would
+    showToast('Subscribed — see you next month!')
+  }
 })
+
+// -----------------------------------------------------------------------------
+// showToast — one transient message, appended to the SHELL's #toast-host
+// -----------------------------------------------------------------------------
+// Why the shell? #view is wiped on every switchView — a toast injected there
+// would vanish instantly when navigating. The host sits outside #view in
+// index.html, so messages outlive the view that fired them.
+// textContent (not innerHTML) keeps user-adjacent strings inert — no XSS.
+function showToast(message) {
+  const host = document.querySelector('#toast-host')
+  if (!host) return
+
+  const toast = document.createElement('div')
+  toast.className =
+    'pointer-events-auto rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white opacity-100 shadow-lg transition-opacity duration-300 dark:bg-white dark:text-gray-900'
+  toast.textContent = message
+  host.appendChild(toast)
+
+  // Two timers = fade, then remove: removing immediately would cut the
+  // opacity transition (the "150-300ms aftertaste" of a toast).
+  setTimeout(() => toast.classList.add('opacity-0'), 2500)
+  setTimeout(() => toast.remove(), 2800)
+}
 
 // -----------------------------------------------------------------------------
 // initChat — history collapse + send flow (chat.html)
@@ -383,6 +423,49 @@ function initSettings(root) {
   // div, so it can never match). Clicks inside the card hit descendants.
   modal.addEventListener('click', (event) => {
     if (event.target === modal) modal.close()
+  })
+}
+
+// -----------------------------------------------------------------------------
+// initShop — cart badge + toast feedback (shop.html)
+// -----------------------------------------------------------------------------
+function initShop(root) {
+  const countEl = root.querySelector('[data-cart-count]')
+  let count = 0 // view-local state: reset when you leave and come back —
+  // a real app would keep this in a store or on the server.
+
+  root.querySelectorAll('[data-add-cart]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      count += 1
+      if (countEl) countEl.textContent = String(count)
+
+      // Transient button feedback: swap label, restore from a saved
+      // reference (reading it AFTER swapping would grab "Added ✓" forever).
+      const original = btn.textContent
+      btn.textContent = 'Added ✓'
+      btn.disabled = true
+      setTimeout(() => {
+        btn.textContent = original
+        btn.disabled = false
+      }, 900)
+
+      showToast(`${btn.dataset.name} added to cart`)
+    })
+  })
+}
+
+// -----------------------------------------------------------------------------
+// initStates — toast demo + retry buttons (states.html)
+// -----------------------------------------------------------------------------
+function initStates(root) {
+  root.querySelectorAll('[data-toast-demo]').forEach((btn) => {
+    btn.addEventListener('click', () => showToast(btn.dataset.toastDemo))
+  })
+
+  // Retry: in a real app this refetches; here it just proves the button
+  // is wired and gives immediate feedback instead of a dead click.
+  root.querySelector('[data-retry]')?.addEventListener('click', () => {
+    showToast('Retrying… (demo: still unreachable)')
   })
 }
 

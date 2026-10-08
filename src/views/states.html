@@ -1,0 +1,173 @@
+<!--
+  ============================================================================
+  STATES — the four screens every real app needs but demos always skip:
+  loading (skeletons), empty, error, and transient feedback (toast).
+  ============================================================================
+  Teaching point: design these BEFORE the happy path. A product that only
+  looks good with data in it isn't finished — async is the normal case.
+  ============================================================================
+-->
+<div class="mx-auto max-w-4xl space-y-10 px-4 py-6 sm:px-6">
+
+  <!-- ============================ LOADING ============================ -->
+  <section aria-labelledby="loading-title">
+    <h2 id="loading-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+      Loading — skeletons
+    </h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Skeletons mirror the REAL layout (same heights/widths), so content
+      swaps in without the page jumping — no cumulative layout shift.
+      Spinner-only loading is slower to read: users can't preview structure.
+    </p>
+
+    <!-- Fake stat cards: same rounded/height as real ones would be -->
+    <div class="mt-4 grid gap-4 sm:grid-cols-3">
+      <div class="rounded-2xl border bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <!-- animate-pulse: opacity 1↔0.5 loop. Respect reduced motion? A
+             global `motion-reduce:animate-none` is the one-liner. -->
+        <div class="h-3 w-20 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        <div class="mt-3 h-7 w-28 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        <div class="mt-3 h-3 w-36 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+      </div>
+      <div class="rounded-2xl border bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div class="h-3 w-20 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        <div class="mt-3 h-7 w-24 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        <div class="mt-3 h-3 w-32 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+      </div>
+      <div class="rounded-2xl border bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div class="h-3 w-20 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        <div class="mt-3 h-7 w-32 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        <div class="mt-3 h-3 w-28 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+      </div>
+    </div>
+
+    <!-- List skeleton: avatar circle + two text lines (chat/history shape) -->
+    <div class="mt-4 space-y-3 rounded-2xl border bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 shrink-0 rounded-full bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-3 w-1/3 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+          <div class="h-3 w-2/3 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 shrink-0 rounded-full bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-3 w-1/4 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+          <div class="h-3 w-1/2 rounded bg-gray-200 animate-pulse motion-reduce:animate-none dark:bg-gray-800"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= EMPTY ============================= -->
+  <section aria-labelledby="empty-title">
+    <h2 id="empty-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+      Empty — nothing here yet
+    </h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      An empty state is a pitch, not an apology: say what goes here and give
+      ONE obvious action. Never show a blank area with no explanation.
+    </p>
+
+    <div class="mt-4 rounded-2xl border border-dashed bg-white p-10 text-center dark:border-gray-700 dark:bg-gray-900">
+      <!-- Big glyph: emoji keeps it dependency-free (icon libraries are a
+           build-time cost you don't need for one glyph) -->
+      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-3xl dark:bg-gray-800" aria-hidden="true"
+        >📁</span
+      >
+      <p class="mt-4 font-semibold text-gray-900 dark:text-white">No projects yet</p>
+      <p class="mx-auto mt-1 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+        Projects group your deployments, logs and teammates in one place.
+        Create your first one to get started.
+      </p>
+      <button
+        type="button"
+        class="mt-5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+      >
+        + New project
+      </button>
+      <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+        Secondary link below: "Import from GitHub" for the alternate path.
+      </p>
+      <a
+        href="#"
+        class="mt-1 inline-block rounded-sm text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+        >Import from GitHub</a
+      >
+    </div>
+  </section>
+
+  <!-- ============================= ERROR ============================= -->
+  <section aria-labelledby="error-title">
+    <h2 id="error-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+      Error — failed, with a way out
+    </h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Three ingredients: what happened (plain words), why it matters, and the
+      retry/escape action. Red text alone tells a screen reader user nothing —
+      pair color with an icon, a heading and role="alert". (a11y)
+    </p>
+
+    <div
+      role="alert"
+      class="mt-4 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 dark:border-red-900 dark:bg-red-950"
+    >
+      <span class="text-xl" aria-hidden="true">⚠️</span>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold text-red-800 dark:text-red-300">
+          Couldn't load deployments
+        </p>
+        <p class="mt-1 text-sm text-red-700 dark:text-red-400">
+          The API timed out after 10s. Your data is safe — this is a
+          connectivity problem, not a failed request on our side.
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            data-retry
+            class="rounded-lg bg-red-600 px-3.5 py-1.5 text-sm font-medium text-white transition hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            Retry
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border border-red-300 px-3.5 py-1.5 text-sm font-medium text-red-800 transition hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900"
+          >
+            View status page
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= TOAST ============================= -->
+  <section aria-labelledby="toast-title">
+    <h2 id="toast-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+      Toast — transient confirmation
+    </h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      The toast host lives in the SHELL (index.html) so messages survive view
+      switches. aria-live="polite" on the host announces new toasts without
+      interrupting the current utterance. Fires here via showToast() in
+      main.js — the same helper Shop uses after "Add".
+    </p>
+
+    <div class="mt-4 flex flex-wrap gap-3">
+      <button
+        type="button"
+        data-toast-demo="Saved successfully"
+        class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+      >
+        Show success toast
+      </button>
+      <button
+        type="button"
+        data-toast-demo="Copied to clipboard"
+        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+      >
+        Show neutral toast
+      </button>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,201 @@
+<!--
+  ============================================================================
+  FAQ — accordion built on NATIVE <details>/<summary>.
+  ============================================================================
+  Why native instead of a JS accordion?
+    - open/close, keyboard (Enter/Space on summary) and the "expanded"
+      semantics screen readers announce all come free from the browser.
+    - JS version = aria wiring + key handlers + state you must maintain.
+  Styling tricks:
+    - summary is display:list-item by default → its triangle marker shows.
+      list-none kills it (plus the WebKit legacy pseudo for old Safari).
+    - Chevron rotate: `group-open:rotate-180` — the `open:` variant matches
+      <details open>; prefixing with `group-` scopes it to the nearest
+      ancestor with .group, so each item's chevron follows ITS OWN state.
+    Multiple items may stay open — that's <details> default (fine for FAQ).
+  ============================================================================
+-->
+<div class="mx-auto max-w-3xl px-4 py-6 sm:px-6">
+  <header class="text-center">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">FAQ</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Answers to the questions this demo gets most.
+    </p>
+  </header>
+
+  <!-- The accordion: border-b rows inside one card, divide-style via border -->
+  <div class="mt-8 divide-y divide-gray-200 rounded-2xl border bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
+    <!-- Open by default: the `open` attribute present in markup = expanded
+         on first render. Remove it to start collapsed. -->
+    <details open class="group">
+      <summary
+        class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-gray-900 select-none [&::-webkit-details-marker]:hidden dark:text-white"
+      >
+        Is this a real app or a demo?
+        <!-- Chevron: inline SVG, spins 180° when parent <details> is open -->
+        <svg
+          class="size-4 shrink-0 text-gray-400 transition group-open:rotate-180"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </summary>
+      <p class="px-5 pb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+        Demo. Every button that would touch a server (pay, login, delete,
+        subscribe) is deliberately inert or shows canned feedback. Clone it,
+        read the comments, break it, ship your own version.
+      </p>
+    </details>
+
+    <details class="group">
+      <summary
+        class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-gray-900 select-none [&::-webkit-details-marker]:hidden dark:text-white"
+      >
+        Why Tailwind v4 specifically?
+        <svg
+          class="size-4 shrink-0 text-gray-400 transition group-open:rotate-180"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </summary>
+      <p class="px-5 pb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+        v4 drops the config file for CSS-first setup: theme tokens live in
+        <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">@theme</code>,
+        variants like
+        <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">dark</code>
+        are declared with
+        <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">@custom-variant</code>,
+        and the Vite plugin compiles it all — no PostCSS config.
+      </p>
+    </details>
+
+    <details class="group">
+      <summary
+        class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-gray-900 select-none [&::-webkit-details-marker]:hidden dark:text-white"
+      >
+        Do I need React to build something like this?
+        <svg
+          class="size-4 shrink-0 text-gray-400 transition group-open:rotate-180"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </summary>
+      <p class="px-5 pb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+        No. This whole site is ~700 lines of vanilla JS doing view swaps,
+        delegation and a couple of listeners. Learn the platform first — then
+        React's job (syncing state to DOM) becomes obvious instead of magic.
+      </p>
+    </details>
+
+    <details class="group">
+      <summary
+        class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-gray-900 select-none [&::-webkit-details-marker]:hidden dark:text-white"
+      >
+        How does the sidebar remember nothing between reloads?
+        <svg
+          class="size-4 shrink-0 text-gray-400 transition group-open:rotate-180"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </summary>
+      <p class="px-5 pb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+        It always boots to the landing view — no router, no URL state. Only
+        dark mode persists (localStorage). Adding hash routing
+        (<code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">#/table</code>)
+        is the natural next exercise.
+      </p>
+    </details>
+
+    <details class="group">
+      <summary
+        class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-gray-900 select-none [&::-webkit-details-marker]:hidden dark:text-white"
+      >
+        Why comment SO much?
+        <svg
+          class="size-4 shrink-0 text-gray-400 transition group-open:rotate-180"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </summary>
+      <p class="px-5 pb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+        The markup IS the lesson. Every comment answers "why these classes,
+        not just what they do" — the reasoning you'd normally lose in a
+        YouTube timestamp. Strip them freely once the patterns are yours.
+      </p>
+    </details>
+
+    <details class="group">
+      <summary
+        class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-gray-900 select-none [&::-webkit-details-marker]:hidden dark:text-white"
+      >
+        Can I use this commercially?
+        <svg
+          class="size-4 shrink-0 text-gray-400 transition group-open:rotate-180"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </summary>
+      <p class="px-5 pb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+        Yes — copy, modify, ship. No attribution required (MIT on the repo).
+        The patterns are the valuable part, and patterns don't belong to
+        anyone.
+      </p>
+    </details>
+  </div>
+
+  <!-- Contact CTA: the "nothing here answered it" escape hatch -->
+  <section
+    class="mt-8 rounded-2xl border border-dashed p-6 text-center dark:border-gray-700"
+  >
+    <p class="font-medium text-gray-900 dark:text-white">Still stuck?</p>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Open an issue on the repo — questions shape the next pattern.
+    </p>
+    <a
+      href="https://github.com/ashik-maybe/html-tailwindcss-demo"
+      class="mt-4 inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+      >Ask on GitHub</a
+    >
+  </section>
+</div>
