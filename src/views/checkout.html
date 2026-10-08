@@ -1,0 +1,325 @@
+<!-- =============================================================================
+     VIEW: CHECKOUT & BILLING FORM
+     =============================================================================
+     Lessons on this page:
+       1. progress stepper      flex + connectors
+       2. split layout          lg:grid-cols-5 (2 + 3 columns)
+       3. sticky order summary  lg:sticky + self-start (grid-sticky gotcha)
+       4. custom radios         peer sr-only input + peer-checked on siblings
+                                + has-[:checked] on the label itself
+       5. focus rings           focus:ring-2 on every input
+       6. disabled → enabled    agree checkbox drives [data-pay-btn] (main.js)
+     ============================================================================== -->
+
+<div class="mx-auto max-w-6xl px-6 py-8">
+  <!-- Page header -->
+  <div>
+    <h1 class="text-xl font-semibold">Checkout</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Almost there — 2 steps left.</p>
+  </div>
+
+  <!-- =========================================================================
+         STEPPER — Cart (done) · Shipping (current) · Payment (next)
+         flex items-center = dots and connectors share one horizontal axis.
+         Each step = circle + label; connectors = flex-1 hairlines that eat
+         ALL leftover width, pushing steps apart evenly.
+         ====================================================================== -->
+  <ol class="mt-8 flex items-center gap-2 sm:gap-3" aria-label="Checkout progress">
+    <!-- Step 1 — complete: filled circle + check -->
+    <li class="flex items-center gap-2">
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white" aria-hidden="true">✓</span>
+      <span class="hidden text-sm font-medium text-gray-900 sm:block dark:text-gray-100">Cart</span>
+    </li>
+    <!-- Connector: flex-1 h-px — 1px-tall line that stretches.
+         bg-gray-200 = completed section, brand = progress so far. -->
+    <div class="h-px flex-1 bg-brand-600" aria-hidden="true"></div>
+
+    <!-- Step 2 — current: outlined circle + ring focus, aria-current="step" -->
+    <li class="flex items-center gap-2">
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-brand-600 bg-brand-50 text-xs font-bold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300" aria-hidden="true">2</span>
+      <span class="hidden text-sm font-semibold text-brand-700 sm:block dark:text-brand-300" aria-current="step">Shipping</span>
+    </li>
+    <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></div>
+
+    <!-- Step 3 — upcoming: gray, muted -->
+    <li class="flex items-center gap-2">
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-gray-200 text-xs font-bold text-gray-400 dark:border-gray-700" aria-hidden="true">3</span>
+      <span class="hidden text-sm text-gray-400 sm:block">Payment</span>
+    </li>
+  </ol>
+
+  <!-- =========================================================================
+         SPLIT — summary 2/5, form 3/5 (≥1024px), stacked below.
+         gap-8 = breathing room between columns.
+         ====================================================================== -->
+  <div class="mt-10 grid gap-8 lg:grid-cols-5">
+    <!-- ---------------- ORDER SUMMARY (left, 2 of 5 cols) ----------------
+         lg:sticky lg:top-6 = pin while the long form scrolls.
+         self-start WITHOUT IT: grid items stretch to row height by default,
+         the card becomes full-height, and sticky has nowhere to travel —
+         the #1 grid-sticky mistake. align-self:start restores the card's
+         natural height so it can actually stick.
+         ================================================================== -->
+    <aside class="self-start rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-6 dark:border-gray-800 dark:bg-gray-900">
+      <h2 class="font-semibold">Order summary</h2>
+
+      <!-- Line items: flex — thumb left, name/price right, qty under name.
+           thumb shrink-0: flex children shrink under pressure (circles/squares
+           distort without it). -->
+      <ul class="mt-5 space-y-4">
+        <li class="flex items-center gap-4">
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-200 text-xl dark:from-indigo-950 dark:to-indigo-900" aria-hidden="true">🎧</span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium">Aurora Headphones</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Qty 1 · Silver</p>
+          </div>
+          <p class="text-sm font-semibold tabular-nums">$149.00</p>
+        </li>
+        <li class="flex items-center gap-4">
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-100 to-rose-200 text-xl dark:from-rose-950 dark:to-rose-900" aria-hidden="true">⌨️</span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium">Mech Keyboard</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Qty 1 · Tactile</p>
+          </div>
+          <p class="text-sm font-semibold tabular-nums">$29.00</p>
+        </li>
+      </ul>
+
+      <!-- Totals: border-t separates from items; divide-y spaces rows with
+           1px rules — same pattern as the dashboard activity list. -->
+      <dl class="mt-6 divide-y divide-gray-100 border-t border-gray-100 text-sm dark:divide-gray-800 dark:border-gray-800">
+        <div class="flex justify-between py-2.5">
+          <dt class="text-gray-500 dark:text-gray-400">Subtotal</dt>
+          <dd class="font-medium tabular-nums">$178.00</dd>
+        </div>
+        <div class="flex justify-between py-2.5">
+          <dt class="text-gray-500 dark:text-gray-400">Shipping</dt>
+          <dd class="font-medium tabular-nums">$12.99</dd>
+        </div>
+        <div class="flex justify-between py-2.5">
+          <dt class="text-gray-500 dark:text-gray-400">Tax</dt>
+          <dd class="font-medium tabular-nums">$9.01</dd>
+        </div>
+      </dl>
+      <div class="flex justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
+        <p class="font-semibold">Total</p>
+        <p class="font-bold tabular-nums">$200.00</p>
+      </div>
+
+      <!-- Trust footer: lock emoji + note (conversion pattern). -->
+      <p class="mt-5 flex items-center gap-2 text-xs text-gray-400">
+        <span aria-hidden="true">🔒</span> Encrypted SSL checkout
+      </p>
+    </aside>
+
+    <!-- ---------------- CHECKOUT FORM (right, 3 of 5 cols) ---------------- -->
+    <form class="space-y-8 lg:col-span-3" novalidate data-checkout-form>
+      <!-- SECTION TEMPLATE: fieldset + legend = semantic grouping.
+           fieldset/legend tell screen readers "these inputs belong together" —
+           <div>+<h3> shows the same visually but says nothing to AT. (a11y) -->
+      <fieldset class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <legend class="px-2 text-sm font-semibold">Contact</legend>
+
+        <label for="co-email" class="block text-sm font-medium">Email</label>
+        <!-- INPUT TEMPLATE — every form field shares this spine:
+             mt-1.5        space under the label
+             w-full        fill the column
+             rounded-xl    modern field radius
+             focus:ring-2  2px brand glow WHILE focused
+             focus:ring-brand-500 + focus:border-brand-500
+                         ring is the visible signal, border shifts too
+             focus:outline-none  remove browser default BECAUSE ring replaces it
+             dark:         night-mode field palette -->
+        <input
+          id="co-email"
+          type="email"
+          required
+          placeholder="you@example.com"
+          class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500"
+        />
+      </fieldset>
+
+      <!-- SHIPPING ADDRESS -->
+      <fieldset class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <legend class="px-2 text-sm font-semibold">Shipping address</legend>
+
+        <!-- 2-up row INSIDE the form: sm:grid-cols-2 — full name + phone.
+             Nested breakpoints: outer split is lg:, inner fields are sm:.
+             Each level picks the breakpoint matching ITS available width. -->
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="co-name" class="block text-sm font-medium">Full name</label>
+            <input id="co-name" type="text" required placeholder="Ada Lovelace"
+              class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+          </div>
+          <div>
+            <label for="co-phone" class="block text-sm font-medium">Phone</label>
+            <input id="co-phone" type="tel" placeholder="+1 555 0100"
+              class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label for="co-address" class="block text-sm font-medium">Address</label>
+          <input id="co-address" type="text" required placeholder="123 Infinite Loop"
+            class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+        </div>
+
+        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+          <div>
+            <label for="co-city" class="block text-sm font-medium">City</label>
+            <input id="co-city" type="text" required placeholder="Cupertino"
+              class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+          </div>
+          <div>
+            <label for="co-state" class="block text-sm font-medium">State</label>
+            <input id="co-state" type="text" placeholder="CA"
+              class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+          </div>
+          <div>
+            <label for="co-zip" class="block text-sm font-medium">ZIP</label>
+            <input id="co-zip" type="text" required inputmode="numeric" placeholder="95014"
+              class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- =====================================================================
+           SHIPPING METHOD — CUSTOM RADIOS (the peer + :has lesson)
+           ---------------------------------------------------------------------
+           Two selectors cooperate, each covering what the other can't:
+
+             peer-checked:*   peer = "style the NEXT SIBLINGS of a :checked
+                            .peer input". Inside each option the DOM is:
+                              input.peer (first child)
+                              span dot, text, price  ← all FOLLOWING siblings
+                            → peer-reachable ✓
+             has-[:checked]   :has() looks DOWN from an ancestor into its
+                            descendants. The <label> owns the input →
+                            label box gets border/bg from the checked state ✓
+
+           WHY input first child of label?
+             If input were nested deeper, dots wouldn't be its siblings and
+             peer-checked would silently match nothing. Sibling order is the
+             whole trick — the invisible input stays focusable, keyboard
+             arrows still work (native radio group "shipping"), the label
+             still toggles it on click. Zero JS for a styled radio.
+
+           Accessibility kept: sr-only not display:none — screen readers and
+           keyboards still see the real control. (a11y)
+           ===================================================================== -->
+
+      <fieldset class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <legend class="px-2 text-sm font-semibold">Shipping method</legend>
+
+        <div class="space-y-3">
+          <!-- OPTION — structure explained once, repeated ×3:
+                 label          box styles via has-[:checked] (input is its child)
+                 input.peer     invisible native radio (focus + a11y for free)
+                 span.dot       sibling of input → peer-checked fills it
+                 The label ALSO gets peer-focus-visible? focus lands on input;
+                 has-[:focus-visible] on the label mirrors the ring. -->
+          <label class="relative flex cursor-pointer items-center gap-3 rounded-xl border border-gray-300 p-4 transition hover:bg-gray-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 dark:border-gray-600 dark:hover:bg-gray-800 dark:has-[:checked]:border-brand-500 dark:has-[:checked]:bg-brand-900/30">
+            <input type="radio" name="shipping" value="standard" class="peer sr-only" />
+            <!-- Custom radio OUT: 16px circle, transparent center.
+                 Custom radio IN: peer-checked → brand border + brand fill.
+                 Because the dot is a SIBLING of the input (input is the
+                 label's first child), peer reaches it. -->
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 transition peer-checked:border-brand-600 dark:border-gray-500" aria-hidden="true">
+              <span class="h-2.5 w-2.5 scale-0 rounded-full bg-brand-600 transition-transform peer-checked:scale-100 dark:bg-brand-400"></span>
+            </span>
+            <span class="flex-1 text-sm">
+              <span class="block font-medium">Standard</span>
+              <span class="block text-xs text-gray-500 dark:text-gray-400">5–7 business days</span>
+            </span>
+            <span class="text-sm font-semibold tabular-nums">Free</span>
+          </label>
+
+          <label class="relative flex cursor-pointer items-center gap-3 rounded-xl border border-gray-300 p-4 transition hover:bg-gray-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 dark:border-gray-600 dark:hover:bg-gray-800 dark:has-[:checked]:border-brand-500 dark:has-[:checked]:bg-brand-900/30">
+            <input type="radio" name="shipping" value="express" class="peer sr-only" checked />
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 transition peer-checked:border-brand-600 dark:border-gray-500" aria-hidden="true">
+              <span class="h-2.5 w-2.5 scale-0 rounded-full bg-brand-600 transition-transform peer-checked:scale-100 dark:bg-brand-400"></span>
+            </span>
+            <span class="flex-1 text-sm">
+              <span class="block font-medium">Express</span>
+              <span class="block text-xs text-gray-500 dark:text-gray-400">2 business days</span>
+            </span>
+            <span class="text-sm font-semibold tabular-nums">$12.99</span>
+          </label>
+
+          <label class="relative flex cursor-pointer items-center gap-3 rounded-xl border border-gray-300 p-4 transition hover:bg-gray-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 dark:border-gray-600 dark:hover:bg-gray-800 dark:has-[:checked]:border-brand-500 dark:has-[:checked]:bg-brand-900/30">
+            <input type="radio" name="shipping" value="overnight" class="peer sr-only" />
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 transition peer-checked:border-brand-600 dark:border-gray-500" aria-hidden="true">
+              <span class="h-2.5 w-2.5 scale-0 rounded-full bg-brand-600 transition-transform peer-checked:scale-100 dark:bg-brand-400"></span>
+            </span>
+            <span class="flex-1 text-sm">
+              <span class="block font-medium">Overnight</span>
+              <span class="block text-xs text-gray-500 dark:text-gray-400">Next day by 12pm</span>
+            </span>
+            <span class="text-sm font-semibold tabular-nums">$29.00</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- PAYMENT -->
+      <fieldset class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <legend class="px-2 text-sm font-semibold">Card details</legend>
+
+        <div>
+          <label for="co-card" class="block text-sm font-medium">Card number</label>
+          <!-- inputmode="numeric" = phone keyboard shows digits (mobile UX),
+               doesn't VALIDATE — real apps still format/verify in JS. -->
+          <input id="co-card" type="text" inputmode="numeric" required placeholder="4242 4242 4242 4242" autocomplete="cc-number"
+            class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-mono text-sm placeholder:font-sans placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label for="co-exp" class="block text-sm font-medium">Expiry</label>
+            <input id="co-exp" type="text" inputmode="numeric" required placeholder="MM / YY" autocomplete="cc-exp"
+              class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-mono text-sm placeholder:font-sans placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+          </div>
+          <div>
+            <label for="co-cvc" class="block text-sm font-medium">CVC</label>
+            <input id="co-cvc" type="text" inputmode="numeric" required placeholder="123" autocomplete="cc-csc"
+              class="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-mono text-sm placeholder:font-sans placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-950 dark:placeholder:text-gray-500" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- AGREE + PAY — the disabled-state lesson.
+           sr-only keeps the checkbox ACCESSIBLE (still focusable, still
+           announced) while the visible box below is pure decoration —
+           the label points at it with for=, keyboard space toggles it. -->
+      <div class="flex items-start gap-3">
+        <input
+          id="co-agree"
+          type="checkbox"
+          data-agree
+          class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+        />
+        <!-- accent-brand-600 = tint the NATIVE checkbox (accent-color CSS).
+             Cheaper than a custom box and 100% accessible out of the box. -->
+        <label for="co-agree" class="text-sm text-gray-600 dark:text-gray-400">
+          I agree to the Terms of Service and Refund Policy
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        data-pay-btn
+        disabled
+        class="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition
+               enabled:hover:bg-brand-700
+               disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500
+               dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
+      >
+        <!-- disabled has THREE signals: gray fill, muted text, not-allowed cursor.
+             enabled:hover:* scopes hover ONLY to the enabled state — otherwise
+             a disabled button would still react to hover, which lies. -->
+        Pay $200.00
+      </button>
+      <p class="text-center text-xs text-gray-400">Demo form — no payment is processed.</p>
+    </form>
+  </div>
+</div>

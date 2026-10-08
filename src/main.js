@@ -18,11 +18,15 @@ import './style.css'
 import landing from './views/landing.html?raw'
 import dashboard from './views/dashboard.html?raw'
 import table from './views/table.html?raw'
+import checkout from './views/checkout.html?raw'
+import auth from './views/auth.html?raw'
 
 const views = {
   landing,
   dashboard,
   table,
+  checkout,
+  auth,
 }
 
 // Element references — query once at load, reuse forever.
@@ -216,7 +220,47 @@ function closeDrawer() {
 drawerOpenBtn.addEventListener('click', openDrawer)
 backdropEl.addEventListener('click', closeDrawer)
 
+// -----------------------------------------------------------------------------
+// Forms — checkout agree→pay, auth error reveal, demo submit guards
+// -----------------------------------------------------------------------------
+// `change` (not `input`) for checkboxes: fires once when state flips, which
+// is exactly when we need to react. Delegated like everything else.
+// -----------------------------------------------------------------------------
+document.addEventListener('change', (event) => {
+  if (!event.target.matches('[data-agree]')) return
+
+  // Disabled pay button: main.js OWNS the state; CSS owns the LOOK
+  // (disabled:bg-gray-300 etc. react to the attribute automatically).
+  const payBtn = document.querySelector('[data-pay-btn]')
+  if (payBtn) payBtn.disabled = !event.target.checked
+})
+
+// `submit` bubbles from the form to document — one listener covers both views.
+document.addEventListener('submit', (event) => {
+  // Demo guard: nothing processes payments here. preventDefault stops the
+  // page navigation a <form> would otherwise trigger.
+  if (event.target.matches('[data-checkout-form]')) {
+    event.preventDefault()
+    return
+  }
+
+  if (event.target.matches('[data-auth-form]')) {
+    // Always fail: this demo's job is to SHOW the error state, not to log in.
+    // Real apps validate first and only surface the alert on server rejection.
+    event.preventDefault()
+
+    const alert = document.querySelector('#auth-error')
+    if (!alert) return
+    alert.classList.remove('hidden')
+    // Move focus to the message: sighted keyboard users see the ring land
+    // there, screen reader users hear role="alert" read out. (a11y)
+    alert.focus({ preventScroll: false })
+  }
+})
+
+// -----------------------------------------------------------------------------
 // Escape closes overlays — keyboard users expect it. (a11y)
+// -----------------------------------------------------------------------------
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return
   closeDrawer()
