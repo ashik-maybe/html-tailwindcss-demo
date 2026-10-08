@@ -16,9 +16,13 @@ import './style.css'
 // called AFTER insertion (see switchView). Registry grows every phase.
 // -----------------------------------------------------------------------------
 import landing from './views/landing.html?raw'
+import dashboard from './views/dashboard.html?raw'
+import table from './views/table.html?raw'
 
 const views = {
   landing,
+  dashboard,
+  table,
 }
 
 // Element references — query once at load, reuse forever.
@@ -38,14 +42,21 @@ function switchView(id) {
 
   // Active state: ONE nav button gets bg/aria-current, all others lose it.
   // aria-current="page" is how screen readers announce "you are here". (a11y)
+  // Both hover sets are managed here too — an inactive button must not keep
+  // the active button's brand-tinted hover (classes live in markup, JS owns
+  // which variant applies).
   document.querySelectorAll('[data-view]').forEach((btn) => {
     const active = btn.dataset.view === id
     btn.classList.toggle('bg-brand-50', active)
     btn.classList.toggle('text-brand-700', active)
+    btn.classList.toggle('hover:bg-brand-100', active)
     btn.classList.toggle('dark:bg-brand-900/30', active)
     btn.classList.toggle('dark:text-brand-300', active)
+    btn.classList.toggle('dark:hover:bg-brand-900/50', active)
     btn.classList.toggle('text-gray-600', !active)
+    btn.classList.toggle('hover:bg-gray-100', !active)
     btn.classList.toggle('dark:text-gray-400', !active)
+    btn.classList.toggle('dark:hover:bg-gray-800', !active)
     if (active) btn.setAttribute('aria-current', 'page')
     else btn.removeAttribute('aria-current')
   })
@@ -61,15 +72,126 @@ function switchView(id) {
 }
 
 // -----------------------------------------------------------------------------
-// Event delegation
+// Event delegation — ONE click listener for every interactive widget
 // -----------------------------------------------------------------------------
-// ONE click listener on document instead of one per button.
-// data-view buttons work now; buttons added in later phases work with zero
-// JS changes — the handler reads the attribute at click time.
+// Instead of attaching listeners to buttons that exist right now, we watch
+// for clicks on document and ask "what did they hit?" via closest().
+// Three behaviours, one listener:
+//   1. [data-view]            → switch views (nav)
+//   2. [data-dropdown-trigger]→ toggle its menu (dashboard profile)
+//   3. click outside an open dropdown → close it
 document.addEventListener('click', (event) => {
+  // 1. Navigation
   const navBtn = event.target.closest('[data-view]')
   if (navBtn) switchView(navBtn.dataset.view)
+
+  // 2. Dropdown trigger: toggle the menu that is a SIBLING inside the
+  //    nearest [data-dropdown] wrapper. stopPropagation is NOT needed —
+  //    rule 3 runs after and re-checks containment, finding our own click
+  //    inside [data-dropdown] and leaving the menu open.
+  const trigger = event.target.closest('[data-dropdown-trigger]')
+  if (trigger) {
+    const menu = trigger.closest('[data-dropdown]')?.querySelector('[data-dropdown-menu]')
+    if (menu) {
+      const willOpen = menu.classList.contains('hidden')
+      menu.classList.toggle('hidden')
+      // aria-expanded must track reality — screen readers announce
+      // "expanded/collapsed" from this attribute. (a11y)
+      trigger.setAttribute('aria-expanded', String(willOpen))
+      return // own click handled; skip the outside-close rule
+    }
+  }
+
+  // 3. Outside-click close: any click NOT inside a [data-dropdown] collapses
+  //    every open menu. querySelectorAll + toggle keeps it idempotent
+  //    (safe even when nothing is open).
+  if (!event.target.closest('[data-dropdown]')) {
+    document.querySelectorAll('[data-dropdown-menu]:not(.hidden)').forEach((menu) => {
+      menu.classList.add('hidden')
+      const trig = menu.closest('[data-dropdown]')?.querySelector('[data-dropdown-trigger]')
+      trig?.setAttribute('aria-expanded', 'false')
+    })
+  }
 })
+
+// -----------------------------------------------------------------------------
+// Table filtering — search box + status chips (table view)
+// -----------------------------------------------------------------------------
+// `input` fires on every keystroke (unlike `change`, which waits for blur).
+// Delegated again: the table is re-injected per visit, listeners would leak.
+// -----------------------------------------------------------------------------
+document.addEventListener('input', (event) => {
+  if (event.target.matches('[data-table-search]')) applyTableFilter()
+})
+
+document.addEventListener('click', (event) => {
+  const chip = event.target.closest('[data-status-filter]')
+  if (!chip) return
+
+  // Move active tint + aria-pressed to the clicked chip, undo it on siblings.
+  // aria-pressed = toggle-button semantics for screen readers. (a11y)
+  chip.parentElement.querySelectorAll('[data-status-filter]').forEach((btn) => {
+    const active = btn === chip
+    btn.setAttribute('aria-pressed', String(active))
+    // Same swap pattern as the nav: tinted classes on, defaults off (and back).
+    btn.classList.toggle('border-brand-200', active)
+    btn.classList.toggle('bg-brand-50', active)
+    btn.classList.toggle('text-brand-700', active)
+    btn.classList.toggle('dark:border-brand-800', active)
+    btn.classList.toggle('dark:bg-brand-900/30', active)
+    btn.classList.toggle('dark:text-brand-300', active)
+    btn.classList.toggle('border-gray-200', !active)
+    btn.classList.toggle('bg-white', !active)
+    btn.classList.toggle('text-gray-600', !active)
+    btn.classList.toggle('dark:border-gray-700', !active)
+    btn.classList.toggle('dark:bg-gray-900', !active)
+    btn.classList.toggle('dark:text-gray-400', !active)
+  })
+
+  applyTableFilter()
+})
+
+// Core filter logic: AND between text query and status chip.
+// Both conditions must pass for a row to stay visible.
+function applyTableFilter() {
+  const search = document.querySelector('[data-table-search]')
+  const table = document.querySelector('table')
+  if (!search || !table) return // table view not on screen — ignore
+
+  const query = search.value.trim().toLowerCase()
+  const status = document.querySelector('[data-status-filter][aria-pressed="true"]')?.dataset.statusFilter ?? 'all'
+  const rows = table.querySelectorAll('tbody tr[data-status]')
+
+  let visible = 0
+  rows.forEach((row) => {
+    const matchText = row.textContent.toLowerCase().includes(query)
+    const matchStatus = status === 'all' || row.dataset.status === status
+    const show = matchText && matchStatus
+    row.classList.toggle('hidden', !show)
+    if (show) visible++
+  })
+
+  // ---------------------------------------------------------------------------
+  // Zebra striping after filtering
+  // ---------------------------------------------------------------------------
+  // The markup uses even:bg-gray-50 — Tailwind compiles that to a rule with
+  // :nth-child(even), and nth-child counts ALL siblings, hidden ones included.
+  // Hide row 1 and the remaining rows keep their old DOM parity → stripes go
+  // stripe/blank/stripe. CSS cannot "recount"; JS takes over once a filter
+  // runs: strip the nth-child utilities, apply PLAIN bg classes in VISIBLE
+  // order. Both plain classes already exist in the built CSS (dashboard +
+  // table header use them), so no extra source entry is needed.
+  let stripeIndex = 0
+  rows.forEach((row) => {
+    row.classList.remove('even:bg-gray-50', 'dark:even:bg-gray-800/60', 'bg-gray-50', 'dark:bg-gray-800/60')
+    if (row.classList.contains('hidden')) return
+    stripeIndex++
+    if (stripeIndex % 2 === 0) row.classList.add('bg-gray-50', 'dark:bg-gray-800/60')
+  })
+
+  // Empty state row (colspan=6 message) shows only on zero matches.
+  document.querySelector('#table-empty')?.classList.toggle('hidden', visible > 0)
+}
 
 // -----------------------------------------------------------------------------
 // Mobile drawer
@@ -96,7 +218,13 @@ backdropEl.addEventListener('click', closeDrawer)
 
 // Escape closes overlays — keyboard users expect it. (a11y)
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') closeDrawer()
+  if (event.key !== 'Escape') return
+  closeDrawer()
+  // Also collapse any open dropdown (same rules as outside-click close).
+  document.querySelectorAll('[data-dropdown-menu]:not(.hidden)').forEach((menu) => {
+    menu.classList.add('hidden')
+    menu.closest('[data-dropdown]')?.querySelector('[data-dropdown-trigger]')?.setAttribute('aria-expanded', 'false')
+  })
 })
 
 // -----------------------------------------------------------------------------
