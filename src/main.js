@@ -34,14 +34,14 @@ import states from './views/states.html?raw'
 // are hoisted, so referencing them here is safe.
 const views = {
   landing: { html: landing },
-  dashboard: { html: dashboard },
+  dashboard: { html: dashboard, init: initDashboard },
   table: { html: table, init: initTable }, // real 42-row dataset + pagination
   checkout: { html: checkout },
   auth: { html: auth },
   chat: { html: chat, init: initChat },
   settings: { html: settings, init: initSettings },
   shop: { html: shop, init: initShop },
-  blog: { html: blog }, // only the delegated newsletter handler — no init
+  blog: { html: blog, init: initBlog }, // category pills filter + newsletter
   faq: { html: faq }, // native <details>, zero JS by design
   states: { html: states, init: initStates },
 }
@@ -114,18 +114,45 @@ function collapseDropdown(menu) {
 // -----------------------------------------------------------------------------
 // Instead of attaching listeners to buttons that exist right now, we watch
 // for clicks on document and ask "what did they hit?" via closest().
-// Three behaviours, one listener:
-//   1. [data-view]            → switch views (nav)
-//   2. [data-dropdown-trigger]→ toggle its menu (dashboard profile)
-//   3. click outside an open dropdown → close it
+// Five behaviours, one listener:
+//   1. [data-view]            → switch views (NAV: also gets the active-state
+//                                class swap in switchView + feeds the ⌘K
+//                                palette — that's why menu items/CTAs must
+//                                NOT use it: their classes aren't nav classes)
+//   2. [data-goto]            → switch views, no active-state/palette duties
+//   3. [data-toast]           → answer for controls whose real backend isn't
+//                                in this demo (dead clicks teach the wrong
+//                                lesson — every action gets feedback)
+//   4. [data-dropdown-trigger]→ toggle its menu (dashboard profile)
+//   5. click outside an open dropdown → close it
 document.addEventListener('click', (event) => {
-  // 1. Navigation
+  // 1. Navigation (nav buttons are <button>s; guard for <a data-view> anyway)
   const navBtn = event.target.closest('[data-view]')
-  if (navBtn) switchView(navBtn.dataset.view)
+  if (navBtn) {
+    switchView(navBtn.dataset.view)
+    if (navBtn.tagName === 'A') event.preventDefault() // no "#" hash jump
+  }
 
-  // 2. Dropdown trigger: toggle the menu that is a SIBLING inside the
+  // 2. Plain jump: same router, none of the nav duties above.
+  const gotoBtn = event.target.closest('[data-goto]')
+  if (gotoBtn) {
+    switchView(gotoBtn.dataset.goto)
+    if (gotoBtn.tagName === 'A') event.preventDefault()
+  }
+
+  // 3. Demo toast.
+  const toastEl = event.target.closest('[data-toast]')
+  if (toastEl) {
+    showToast(toastEl.dataset.toast)
+    if (toastEl.tagName === 'A') event.preventDefault()
+    // Menu items toast too (dashboard "Sign out") — close any open dropdown
+    // so the answer isn't hidden behind a menu that should have dismissed.
+    document.querySelectorAll('[data-dropdown-menu]:not(.hidden)').forEach(collapseDropdown)
+  }
+
+  // 4. Dropdown trigger: toggle the menu that is a SIBLING inside the
   //    nearest [data-dropdown] wrapper. stopPropagation is NOT needed —
-  //    rule 3 runs after and re-checks containment, finding our own click
+  //    rule 5 runs after and re-checks containment, finding our own click
   //    inside [data-dropdown] and leaving the menu open.
   const trigger = event.target.closest('[data-dropdown-trigger]')
   if (trigger) {
@@ -140,7 +167,7 @@ document.addEventListener('click', (event) => {
     }
   }
 
-  // 3. Outside-click close: any click NOT inside a [data-dropdown] collapses
+  // 5. Outside-click close: any click NOT inside a [data-dropdown] collapses
   //    every open menu. querySelectorAll + toggle keeps it idempotent
   //    (safe even when nothing is open).
   if (!event.target.closest('[data-dropdown]')) {
@@ -414,6 +441,33 @@ function initTable(root) {
 }
 
 // -----------------------------------------------------------------------------
+// initDashboard — chart range segmented control (dashboard.html)
+// -----------------------------------------------------------------------------
+function initDashboard(root) {
+  const sub = root.querySelector('[data-range-sub]')
+  const ranges = [...root.querySelectorAll('[data-range]')]
+  const LABELS = { '7m': 'Last 7 months', '1y': 'Last 12 months', all: 'All time' }
+
+  // Same class-swap recipe as the nav + status chips: pressed pill styles on,
+  // defaults off, both directions — plus aria-pressed so screen readers hear
+  // which range is on. Direct listeners: the set is small and view-scoped.
+  ranges.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      ranges.forEach((other) => {
+        const on = other === btn
+        other.setAttribute('aria-pressed', String(on))
+        other.classList.toggle('bg-white', on)
+        other.classList.toggle('shadow-sm', on)
+        other.classList.toggle('dark:bg-gray-700', on)
+        other.classList.toggle('text-gray-500', !on)
+        other.classList.toggle('dark:text-gray-400', !on)
+      })
+      sub.textContent = LABELS[btn.dataset.range]
+    })
+  })
+}
+
+// -----------------------------------------------------------------------------
 // Mobile drawer
 // -----------------------------------------------------------------------------
 // The aside is hidden below lg via class -translate-x-full (slides it
@@ -529,27 +583,143 @@ function showToast(message) {
 }
 
 // -----------------------------------------------------------------------------
-// initChat — history collapse + send flow (chat.html)
+// initChat — history drawer, canned threads, New reset + send flow (chat.html)
 // -----------------------------------------------------------------------------
 function initChat(root) {
   const history = root.querySelector('[data-chat-history]')
+  const backdrop = root.querySelector('[data-chat-backdrop]')
   const toggle = root.querySelector('[data-chat-history-toggle]')
   const form = root.querySelector('[data-chat-form]')
   const input = root.querySelector('[data-chat-input]')
   const messages = root.querySelector('[data-chat-messages]')
+  const title = root.querySelector('[data-chat-title]')
+  const newBtn = root.querySelector('[data-chat-new]')
 
-  // Collapse: the aside carries `hidden md:flex` in markup. Toggling
-  // `md:flex` off makes `hidden` win at EVERY width (below md it was never
-  // visible anyway — toggle button is md:block too). aria-expanded must
-  // follow reality or screen reader users hear the wrong state. (a11y)
+  // Bubble classes copied from chat.html's own markup — thread swaps rebuild
+  // messages.innerHTML, so the strings must exist in JS too. (Same reason the
+  // table ships a row template.)
+  const ME = 'max-w-[80%] self-end rounded-2xl rounded-br-sm bg-brand-600 px-4 py-2.5 text-sm leading-relaxed text-white'
+  const AI =
+    'max-w-[80%] self-start rounded-2xl rounded-bl-sm border bg-white px-4 py-2.5 text-sm leading-relaxed text-gray-800 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200'
+
+  // --- History: ONE element, two modes ------------------------------------
+  const chatMobile = matchMedia('(max-width: 767px)') // md = 768px
+  const isParked = () => history.classList.contains('-translate-x-full')
+
+  // inert while parked below md: the slide-over is off-screen but still in
+  // the tab order and a11y tree without it. Same trick as the shell drawer,
+  // scoped to this view's subtree.
+  const syncInert = () => {
+    history.inert = chatMobile.matches && isParked()
+  }
+
+  const closeIfMobile = () => {
+    if (!chatMobile.matches) return
+    history.classList.add('-translate-x-full')
+    backdrop?.classList.add('hidden')
+    toggle?.setAttribute('aria-expanded', 'false')
+    syncInert()
+  }
+
+  // Initial state: parked + mobile = closed; anything else = visible
+  // (at md+ the column shows by default, parked class is overridden by
+  // md:translate-x-0).
+  toggle?.setAttribute('aria-expanded', String(!(chatMobile.matches && isParked())))
+  syncInert()
+  chatMobile.addEventListener('change', syncInert)
+
   toggle?.addEventListener('click', () => {
-    const expanded = history.classList.toggle('md:flex')
-    toggle.setAttribute('aria-expanded', String(expanded))
+    if (chatMobile.matches) {
+      // Slide-over path: toggle returns TRUE when the parking class remains —
+      // i.e. we just closed. The backdrop mirrors that state.
+      const nowParked = history.classList.toggle('-translate-x-full')
+      backdrop?.classList.toggle('hidden', nowParked)
+      toggle.setAttribute('aria-expanded', String(!nowParked))
+    } else {
+      // Inline collapse: md:hidden is a media-query utility, so it reliably
+      // beats the base `flex` in the cascade (a base `hidden` would be a
+      // stylesheet-order coin flip).
+      const collapsed = history.classList.toggle('md:hidden')
+      toggle.setAttribute('aria-expanded', String(!collapsed))
+    }
+    syncInert()
   })
 
-  if (!form || !input || !messages) return
+  backdrop?.addEventListener('click', closeIfMobile)
+
+  if (!form || !input || !messages || !title) return
 
   const scrollDown = () => messages.scrollTo({ top: messages.scrollHeight })
+
+  // --- Threads ----------------------------------------------------------------
+  // Snapshot the markup thread = conversation #1. The rest are canned pairs.
+  // Static strings ship as raw HTML on purpose (they CONTAIN <code> markup);
+  // anything user-typed goes through escapeHtml in the send flow below.
+  const defaultThread = messages.innerHTML
+  const THREADS = {
+    'Debug sticky positioning': [
+      ['ai', 'Sticky failing? Usual suspects: an <code class="font-mono text-[13px]">overflow</code> ancestor, or no scroll container. Where is it stuck?'],
+      ['me', 'Header scrolls away inside a grid cell.'],
+      ['ai', 'Grid items default to <code class="font-mono text-[13px]">min-width: auto</code>. Add <code class="font-mono text-[13px]">min-h-0</code> on the cell so it can scroll, then sticky has a viewport to stick to.'],
+    ],
+    'Dark mode with @custom-variant': [
+      ['ai', 'v4 ships NO dark variant by default — you declare it yourself. Setup?'],
+      ['me', 'Class toggle on <code class="font-mono text-[13px]">&lt;html&gt;</code>.'],
+      ['ai', 'Then <code class="font-mono text-[13px]">@custom-variant dark (&amp;:where(.dark, .dark *));</code> in style.css — every <code class="font-mono text-[13px]">dark:</code> utility follows the class. The shell theme button flips <code class="font-mono text-[13px]">.dark</code> on the root element.'],
+    ],
+    'aria-current vs aria-selected': [
+      ['ai', 'Both mean \u201cyou are here\u201d. Which context?'],
+      ['me', 'Nav items, and a tablist.'],
+      ['ai', 'Tabs carry <code class="font-mono text-[13px]">aria-selected</code> (inside <code class="font-mono text-[13px]">role="tablist"</code>); nav items carry <code class="font-mono text-[13px]">aria-current="page"</code>. This app uses both — settings tabs vs the sidebar.'],
+    ],
+  }
+
+  // Shown after "+ New": icon + heading + motivation — the empty-state rules
+  // from states.html, rendered as one template string.
+  const EMPTY_THREAD = `<div data-chat-empty class="flex flex-col items-center justify-center py-10 text-center">
+      <span class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 text-2xl dark:bg-gray-800" aria-hidden="true">💬</span>
+      <p class="mt-3 text-sm font-semibold text-gray-900 dark:text-white">No messages yet</p>
+      <p class="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">Ask about grids, forms or dark mode — replies are canned demo text.</p>
+    </div>`
+
+  const renderThread = (pairs) =>
+    pairs.map(([who, text]) => `<div class="${who === 'me' ? ME : AI}">${text}</div>`).join('')
+
+  // History item active state — same class-swap recipe as every other toggle
+  // in this app, plus aria-current so AT announces which thread is loaded.
+  const ACTIVE = ['bg-brand-50', 'text-brand-700', 'font-medium', 'dark:bg-gray-800', 'dark:text-brand-400']
+  const IDLE = ['text-gray-600', 'transition', 'hover:bg-gray-100', 'dark:text-gray-400', 'dark:hover:bg-gray-800']
+  const items = [...history.querySelectorAll('nav > button')]
+
+  function selectItem(target) {
+    items.forEach((b) => {
+      const on = b === target
+      if (on) b.setAttribute('aria-current', 'true')
+      else b.removeAttribute('aria-current')
+      ACTIVE.forEach((c) => b.classList.toggle(c, on))
+      IDLE.forEach((c) => b.classList.toggle(c, !on))
+    })
+  }
+
+  items.forEach((item) => {
+    item.addEventListener('click', () => {
+      const key = item.textContent.trim()
+      selectItem(item)
+      title.textContent = key
+      messages.innerHTML = key in THREADS ? renderThread(THREADS[key]) : defaultThread
+      scrollDown()
+      closeIfMobile() // content swapped — don't leave the overlay standing
+    })
+  })
+
+  newBtn?.addEventListener('click', () => {
+    messages.innerHTML = EMPTY_THREAD
+    title.textContent = 'New conversation'
+    selectItem(null) // nobody is current until a thread is picked
+    input.value = ''
+    closeIfMobile()
+    input.focus() // land in the composer — typing is the obvious next action
+  })
 
   form.addEventListener('submit', (event) => {
     // form submit already prevented a page reload — but NOT a hash jump;
@@ -558,10 +728,12 @@ function initChat(root) {
     const text = input.value.trim()
     if (!text) return // empty send: do nothing (a comment button is worse)
 
-    messages.insertAdjacentHTML(
-      'beforeend',
-      `<div class="max-w-[80%] self-end rounded-2xl rounded-br-sm bg-brand-600 px-4 py-2.5 text-sm leading-relaxed text-white">${escapeHtml(text)}</div>`,
-    )
+    // The empty-state hint is not a message — first real send clears it.
+    messages.querySelector('[data-chat-empty]')?.remove()
+
+    // escapeHtml (module scope) before insertAdjacentHTML — the XSS lesson:
+    // <img src=x onerror=…> typed into chat must stay TEXT, not markup.
+    messages.insertAdjacentHTML('beforeend', `<div class="${ME}">${escapeHtml(text)}</div>`)
     input.value = ''
     scrollDown()
 
@@ -569,11 +741,9 @@ function initChat(root) {
     // shape (send → waiting → reply lands) is exactly what a network call
     // looks like, so this stays honest about the flow.
     setTimeout(() => {
-    // escapeHtml (module scope) before insertAdjacentHTML — the XSS lesson:
-    // <img src=x onerror=…> typed into chat must stay TEXT, not markup.
-    messages.insertAdjacentHTML(
+      messages.insertAdjacentHTML(
         'beforeend',
-        `<div class="max-w-[80%] self-start rounded-2xl rounded-bl-sm border bg-white px-4 py-2.5 text-sm leading-relaxed text-gray-800 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">Canned demo reply — wire this form to a real API to go live.</div>`,
+        `<div class="${AI}">Canned demo reply — wire this form to a real API to go live.</div>`,
       )
       scrollDown()
     }, 700)
@@ -615,6 +785,37 @@ function initSettings(root) {
         panel.classList.toggle('hidden', panel.dataset.tabPanel !== id)
       })
     })
+  })
+
+  // --- Profile dirty-tracking --------------------------------------------
+  // The sticky bar's status line was a lie ("Unsaved changes" shown at rest).
+  // Now it's STATE: snapshot the fields on init, mark dirty on any input,
+  // Cancel reverts the snapshot, Save clears the flag + answers with a toast.
+  const status = root.querySelector('[data-save-status]')
+  const fields = [...root.querySelectorAll('[data-tab-panel="profile"] input, [data-tab-panel="profile"] textarea')]
+  let saved = fields.map((f) => f.value)
+
+  const setDirty = (dirty) => {
+    if (!status) return
+    status.textContent = dirty ? 'Unsaved changes' : 'No unsaved changes'
+    status.classList.toggle('text-amber-600', dirty)
+    status.classList.toggle('dark:text-amber-400', dirty)
+  }
+
+  fields.forEach((field) => field.addEventListener('input', () => setDirty(true)))
+
+  root.querySelector('[data-profile-cancel]')?.addEventListener('click', () => {
+    fields.forEach((f, i) => {
+      f.value = saved[i]
+    })
+    setDirty(false)
+    showToast('Changes reverted')
+  })
+
+  root.querySelector('[data-profile-save]')?.addEventListener('click', () => {
+    saved = fields.map((f) => f.value) // new snapshot = "clean" baseline
+    setDirty(false)
+    showToast('Profile saved (demo)')
   })
 
   // --- Modal (native <dialog>) -------------------------------------------
@@ -665,16 +866,83 @@ function initShop(root) {
       showToast(`${btn.dataset.name} added to cart`)
     })
   })
+
+  // --- Sort ---------------------------------------------------------------
+  // Sorting MOVES the existing <article> nodes (append re-parents, it never
+  // copies) — so listeners, heart state and cart counts survive the reorder.
+  // innerHTML-rebuilding the grid instead would kill every one of them.
+  const grid = root.querySelector('[data-shop-grid]')
+  const sort = root.querySelector('#shop-sort')
+  const markupOrder = [...grid.querySelectorAll('article')] // "Featured" = markup order
+  const SORTS = {
+    Featured: (a, b) => markupOrder.indexOf(a) - markupOrder.indexOf(b),
+    'Price: low → high': (a, b) => a.dataset.price - b.dataset.price,
+    'Price: high → low': (a, b) => b.dataset.price - a.dataset.price,
+    Newest: (a, b) => b.dataset.new - a.dataset.new, // dataset = strings → coerce with -
+  }
+
+  sort?.addEventListener('change', () => {
+    const by = SORTS[sort.value]
+    if (by) [...markupOrder].sort(by).forEach((card) => grid.append(card))
+  })
+
+  // --- Favourites ---------------------------------------------------------
+  // aria-pressed = toggle-button semantics; the GLYPH follows the state
+  // (♡ outline → ♥ filled) so the change is visible, not just announced.
+  root.querySelectorAll('[data-fav]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const on = btn.getAttribute('aria-pressed') !== 'true'
+      btn.setAttribute('aria-pressed', String(on))
+      const glyph = btn.querySelector('[aria-hidden]')
+      if (glyph) glyph.textContent = on ? '♥' : '♡'
+      btn.classList.toggle('text-rose-500', on)
+      const product = btn.getAttribute('aria-label')?.replace('Save ', '') ?? 'Item'
+      showToast(on ? `${product} saved` : `${product} removed from saved`)
+    })
+  })
 }
 
 // -----------------------------------------------------------------------------
-// initStates — toast demo + retry buttons (states.html)
+// initBlog — category pill filter (blog.html)
 // -----------------------------------------------------------------------------
-function initStates(root) {
-  root.querySelectorAll('[data-toast-demo]').forEach((btn) => {
-    btn.addEventListener('click', () => showToast(btn.dataset.toastDemo))
-  })
+function initBlog(root) {
+  // button[data-cat] = the pills; article[data-cat] = the posts. The type
+  // prefix keeps one selector from matching BOTH sets.
+  const pills = [...root.querySelectorAll('button[data-cat]')]
+  const posts = [...root.querySelectorAll('article[data-cat]')]
 
+  pills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      // Filled pill vs outline pill — same class-swap recipe as the nav,
+      // dashboard range tabs and every other toggle in this app.
+      pills.forEach((other) => {
+        const on = other === pill
+        other.setAttribute('aria-pressed', String(on))
+        other.classList.toggle('bg-gray-900', on)
+        other.classList.toggle('text-white', on)
+        other.classList.toggle('dark:bg-white', on)
+        other.classList.toggle('dark:text-gray-900', on)
+        other.classList.toggle('border', !on) // outline pill needs border-width
+        other.classList.toggle('text-gray-600', !on)
+        other.classList.toggle('hover:bg-gray-100', !on)
+        other.classList.toggle('dark:text-gray-400', !on)
+        other.classList.toggle('dark:hover:bg-gray-800', !on)
+      })
+
+      const cat = pill.dataset.cat
+      posts.forEach((post) => {
+        post.classList.toggle('hidden', cat !== 'all' && post.dataset.cat !== cat)
+      })
+    })
+  })
+}
+
+// -----------------------------------------------------------------------------
+// initStates — retry buttons (states.html)
+// -----------------------------------------------------------------------------
+// Toasts need NO init here: [data-toast] is handled by the global click
+// delegation in the shell (every view gets demo feedback for free).
+function initStates(root) {
   // Retry: in a real app this refetches; here it just proves the button
   // is wired and gives immediate feedback instead of a dead click.
   root.querySelector('[data-retry]')?.addEventListener('click', () => {

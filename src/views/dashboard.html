@@ -6,8 +6,9 @@
        2. stat card grid with trend pills    grid sm:grid-cols-2 xl:grid-cols-4
        3. mock bar chart                      flex items-end + per-bar height
        4. activity feed                       divide-y list pattern
-     Dropdown JS lives in main.js (event delegation — no init needed here).
-     ============================================================================== -->
+      Dropdown JS lives in main.js (event delegation). Range tabs + toasts
+      wire up in initDashboard (main.js) — registered in the views object.
+      ============================================================================== -->
 
 <div class="min-h-full">
   <!-- ===========================================================================
@@ -33,10 +34,13 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- Notification bell — icon-only button REQUIRES aria-label (a11y). -->
+        <!-- Notification bell — icon-only button REQUIRES aria-label (a11y).
+             data-toast = the click gets an ANSWER (panel isn't built in this
+             demo) instead of dead silence. -->
         <button
           type="button"
           aria-label="Notifications (3 unread)"
+          data-toast="Notifications panel — not in this demo"
           class="relative rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
         >
           <span aria-hidden="true">🔔</span>
@@ -85,19 +89,21 @@
             class="absolute right-0 top-full z-20 mt-2 hidden w-52 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg focus-within:ring-2 focus-within:ring-brand-500 dark:border-gray-700 dark:bg-gray-900"
           >
             <!-- Menu items: block buttons, rounded on hover, left-aligned.
-                 role="menuitem" pairs with the menu's role="menu". (a11y) -->
-            <a href="#" role="menuitem" class="block rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none dark:text-gray-200 dark:hover:bg-gray-800">
+                 role="menuitem" pairs with the menu's role="menu". (a11y)
+                 data-goto (not data-view): these JUMP to a view but must not
+                 pick up nav active-state classes or feed the ⌘K palette. -->
+            <a href="#" role="menuitem" data-goto="settings" class="block rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none dark:text-gray-200 dark:hover:bg-gray-800">
               Your profile
             </a>
-            <a href="#" role="menuitem" class="block rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none dark:text-gray-200 dark:hover:bg-gray-800">
+            <a href="#" role="menuitem" data-goto="settings" class="block rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none dark:text-gray-200 dark:hover:bg-gray-800">
               Settings
             </a>
-            <a href="#" role="menuitem" class="block rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none dark:text-gray-200 dark:hover:bg-gray-800">
+            <a href="#" role="menuitem" data-goto="checkout" class="block rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none dark:text-gray-200 dark:hover:bg-gray-800">
               Billing
             </a>
             <!-- Separator: border-t + margin, not a <hr> — lighter DOM. -->
             <div class="my-1.5 border-t border-gray-100 dark:border-gray-800"></div>
-            <a href="#" role="menuitem" class="block rounded-lg px-3 py-2 text-sm text-rose-600 transition hover:bg-rose-50 focus-visible:bg-rose-50 focus-visible:outline-none dark:text-rose-400 dark:hover:bg-rose-950/50">
+            <a href="#" role="menuitem" data-goto="auth" class="block rounded-lg px-3 py-2 text-sm text-rose-600 transition hover:bg-rose-50 focus-visible:bg-rose-50 focus-visible:outline-none dark:text-rose-400 dark:hover:bg-rose-950/50">
               Sign out
             </a>
           </div>
@@ -204,15 +210,20 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="font-semibold">Revenue overview</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Last 7 months</p>
+            <!-- Subtitle is RANGE STATE — initDashboard rewrites this text
+                 when a range button is pressed (label + aria-pressed are real;
+                 the bars stay one fixed dataset — honest about it below). -->
+            <p data-range-sub class="text-sm text-gray-500 dark:text-gray-400">Last 7 months</p>
           </div>
-          <!-- Range tabs: segmented control look — pill container, active child
-               tinted. These are visual only (single dataset), so real switching
-               would need JS state; honest demo > fake interactivity. -->
+          <!-- Range tabs: segmented control look — pill container, pressed child
+               tinted. Real <button>s (spans weren't focusable or clickable),
+               aria-pressed = which range is on for screen readers. The bars
+               below are ONE dataset — switching range updates label + pressed
+               state, not fake numbers: honest demo > fake interactivity. -->
           <div class="hidden rounded-lg bg-gray-100 p-0.5 text-xs font-medium sm:flex dark:bg-gray-800" role="group" aria-label="Chart range">
-            <span class="rounded-md bg-white px-2.5 py-1 shadow-sm dark:bg-gray-700" aria-current="true">7M</span>
-            <span class="px-2.5 py-1 text-gray-500">1Y</span>
-            <span class="px-2.5 py-1 text-gray-500">All</span>
+            <button type="button" data-range="7m" aria-pressed="true" class="rounded-md bg-white px-2.5 py-1 shadow-sm dark:bg-gray-700">7M</button>
+            <button type="button" data-range="1y" aria-pressed="false" class="px-2.5 py-1 text-gray-500 dark:text-gray-400">1Y</button>
+            <button type="button" data-range="all" aria-pressed="false" class="px-2.5 py-1 text-gray-500 dark:text-gray-400">All</button>
           </div>
         </div>
 
@@ -258,7 +269,7 @@
       <section class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
           <h2 class="font-semibold">Recent activity</h2>
-          <a href="#" class="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">View all</a>
+          <a href="#" data-toast="Full activity log — not in this demo" class="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">View all</a>
         </div>
 
         <!-- divide-y — inserts border-top on every child EXCEPT the first.

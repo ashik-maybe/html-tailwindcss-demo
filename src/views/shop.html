@@ -8,7 +8,8 @@
     (group-hover:scale-105) even though the cursor is technically on the card.
   - Absolute-positioned overlay bits: sale badge + favourite button sit on
     top of the image (parent needs relative, children need absolute).
-  - Cart badge + toast: JS in initShop (main.js) — markup stays dumb.
+  - Cart badge + toast, sort + favourite toggles: JS in initShop (main.js) —
+    markup stays dumb, every control answers when clicked.
   No real images: gradient blocks keep the repo fully offline.
   ============================================================================
 -->
@@ -23,9 +24,12 @@
     </div>
 
     <div class="ml-auto flex items-center gap-3">
-      <!-- Cart button: badge count is textContent-swapped by JS -->
+      <!-- Cart button: badge count is textContent-swapped by JS.
+           data-goto="checkout": the cart's REAL destination in this app —
+           a cart that goes nowhere is the loudest dead end in e-commerce. -->
       <button
         type="button"
+        data-goto="checkout"
         class="relative rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
       >
         <span aria-hidden="true">🛒</span>
@@ -38,7 +42,8 @@
       </button>
 
       <!-- Sort select: native <select> = free keyboard + mobile pickers.
-           It does nothing in this demo — real apps would re-query. -->
+           REAL sorting: initShop reorders the article nodes by data-price /
+           data-new (moving nodes keeps their listeners + heart state alive). -->
       <label class="sr-only" for="shop-sort">Sort products</label>
       <select
         id="shop-sort"
@@ -52,13 +57,16 @@
     </div>
   </div>
 
-  <!-- Product grid: base = 1 col, sm = 2, lg = 3 -->
-  <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  <!-- Product grid: base = 1 col, sm = 2, lg = 3. data-shop-grid = the node
+       initShop re-appends sorted cards into. -->
+  <div data-shop-grid class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
     <!--
       Product card (repeated 6× — same skeleton, different data).
       group = hover scope; relative = anchors the badge/heart.
     -->
     <article
+      data-price="49"
+      data-new="3"
       class="group relative flex flex-col overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
     >
       <!-- Image area: gradient block + emoji, aspect-square keeps cards equal
@@ -78,6 +86,8 @@
              not the icon — "Save Aurora Lamp", not "Save". (a11y) -->
         <button
           type="button"
+          data-fav
+          aria-pressed="false"
           aria-label="Save Aurora Lamp"
           class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-sm transition hover:bg-white hover:text-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none dark:bg-gray-900/80 dark:text-gray-300"
         >
@@ -118,6 +128,8 @@
     </article>
 
     <article
+      data-price="89"
+      data-new="6"
       class="group relative flex flex-col overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
     >
       <div class="relative aspect-square overflow-hidden bg-linear-to-br from-sky-400 to-indigo-500">
@@ -128,6 +140,8 @@
         >
         <button
           type="button"
+          data-fav
+          aria-pressed="false"
           aria-label="Save Pebble Speaker"
           class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-sm transition hover:bg-white hover:text-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none dark:bg-gray-900/80 dark:text-gray-300"
         >
@@ -159,6 +173,8 @@
     </article>
 
     <article
+      data-price="24"
+      data-new="1"
       class="group relative flex flex-col overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
     >
       <div class="relative aspect-square overflow-hidden bg-linear-to-br from-emerald-400 to-teal-500">
@@ -169,6 +185,8 @@
         >
         <button
           type="button"
+          data-fav
+          aria-pressed="false"
           aria-label="Save Drift Bottle"
           class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-sm transition hover:bg-white hover:text-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none dark:bg-gray-900/80 dark:text-gray-300"
         >
@@ -200,6 +218,8 @@
     </article>
 
     <article
+      data-price="59"
+      data-new="4"
       class="group relative flex flex-col overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
     >
       <div class="relative aspect-square overflow-hidden bg-linear-to-br from-amber-400 to-orange-500">
@@ -210,6 +230,8 @@
         >
         <button
           type="button"
+          data-fav
+          aria-pressed="false"
           aria-label="Save Loom Throw"
           class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-sm transition hover:bg-white hover:text-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none dark:bg-gray-900/80 dark:text-gray-300"
         >
@@ -241,6 +263,8 @@
     </article>
 
     <article
+      data-price="18"
+      data-new="5"
       class="group relative flex flex-col overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
     >
       <div class="relative aspect-square overflow-hidden bg-linear-to-br from-violet-400 to-purple-500">
@@ -255,6 +279,8 @@
         >
         <button
           type="button"
+          data-fav
+          aria-pressed="false"
           aria-label="Save Mist Candle"
           class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-sm transition hover:bg-white hover:text-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none dark:bg-gray-900/80 dark:text-gray-300"
         >
@@ -289,6 +315,8 @@
     </article>
 
     <article
+      data-price="34"
+      data-new="2"
       class="group relative flex flex-col overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
     >
       <div class="relative aspect-square overflow-hidden bg-linear-to-br from-slate-400 to-gray-500">
@@ -299,6 +327,8 @@
         >
         <button
           type="button"
+          data-fav
+          aria-pressed="false"
           aria-label="Save Arc Charger"
           class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-sm transition hover:bg-white hover:text-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none dark:bg-gray-900/80 dark:text-gray-300"
         >
