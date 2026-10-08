@@ -2,49 +2,77 @@
      VIEW: CHECKOUT & BILLING FORM
      =============================================================================
      Lessons on this page:
-       1. progress stepper      flex + connectors
+       1. real 3-step flow      per-step checkValidity()/reportValidity(),
+                                back-to-completed only (initCheckout in main.js)
        2. split layout          lg:grid-cols-5 (2 + 3 columns)
        3. sticky order summary  lg:sticky + self-start (grid-sticky gotcha)
        4. custom radios         peer sr-only input + peer-checked on siblings
                                 + has-[:checked] on the label itself
        5. focus rings           focus:ring-2 on every input
        6. disabled → enabled    agree checkbox drives [data-pay-btn] (main.js)
-     ============================================================================== -->
+       ============================================================================== -->
 
 <div class="mx-auto max-w-6xl px-6 py-8">
-  <!-- Page header -->
+  <!-- Page header — aria-live: the "steps left" line announces itself on
+       every step change without stealing focus. (a11y) -->
   <div>
     <h1 class="text-xl font-semibold">Checkout</h1>
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Almost there — 2 steps left.</p>
+    <p data-checkout-sub aria-live="polite" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Almost there — 2 steps left.
+    </p>
   </div>
 
   <!-- =========================================================================
          STEPPER — Cart (done) · Shipping (current) · Payment (next)
          flex items-center = dots and connectors share one horizontal axis.
-         Each step = circle + label; connectors = flex-1 hairlines that eat
+         Each step = button + label; connectors = flex-1 hairlines that eat
          ALL leftover width, pushing steps apart evenly.
+         `<ol>` children MUST be `<li>` — the connectors are li elements too
+         (a bare div inside ol is invalid and gets hoisted by some parsers).
+         initCheckout recomputes every state class; markup ships the initial
+         paint so nothing flashes before JS runs.
          ====================================================================== -->
-  <ol class="mt-8 flex items-center gap-2 sm:gap-3" aria-label="Checkout progress">
-    <!-- Step 1 — complete: filled circle + check -->
+  <ol data-stepper class="mt-8 flex items-center gap-2 sm:gap-3" aria-label="Checkout progress">
+    <!-- Step 1 — complete: filled circle + check. Clicking it opens the cart
+         (the Shop view) — a completed step is always reachable backwards. -->
     <li class="flex items-center gap-2">
-      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white" aria-hidden="true">✓</span>
-      <span class="hidden text-sm font-medium text-gray-900 sm:block dark:text-gray-100">Cart</span>
+      <button
+        type="button"
+        data-step-go="1"
+        class="flex items-center gap-2 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+      >
+        <span data-step-dot aria-hidden="true" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">✓</span>
+        <span data-step-text class="hidden text-sm font-medium text-gray-900 sm:block dark:text-gray-100">Cart</span>
+      </button>
     </li>
     <!-- Connector: flex-1 h-px — 1px-tall line that stretches.
-         bg-gray-200 = completed section, brand = progress so far. -->
-    <div class="h-px flex-1 bg-brand-600" aria-hidden="true"></div>
+         brand = step it leads to has been reached; gray = still ahead. -->
+    <li data-step-connector class="h-px flex-1 bg-brand-600" aria-hidden="true"></li>
 
-    <!-- Step 2 — current: outlined circle + ring focus, aria-current="step" -->
+    <!-- Step 2 — current: outlined circle + aria-current="step" -->
     <li class="flex items-center gap-2">
-      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-brand-600 bg-brand-50 text-xs font-bold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300" aria-hidden="true">2</span>
-      <span class="hidden text-sm font-semibold text-brand-700 sm:block dark:text-brand-300" aria-current="step">Shipping</span>
+      <button
+        type="button"
+        data-step-go="2"
+        aria-current="step"
+        class="flex items-center gap-2 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+      >
+        <span data-step-dot aria-hidden="true" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-brand-600 bg-brand-50 text-xs font-bold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">2</span>
+        <span data-step-text class="hidden text-sm font-semibold text-brand-700 sm:block dark:text-brand-300">Shipping</span>
+      </button>
     </li>
-    <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></div>
+    <li data-step-connector class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></li>
 
     <!-- Step 3 — upcoming: gray, muted -->
     <li class="flex items-center gap-2">
-      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-gray-200 text-xs font-bold text-gray-400 dark:border-gray-700" aria-hidden="true">3</span>
-      <span class="hidden text-sm text-gray-400 sm:block">Payment</span>
+      <button
+        type="button"
+        data-step-go="3"
+        class="flex items-center gap-2 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+      >
+        <span data-step-dot aria-hidden="true" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-gray-200 text-xs font-bold text-gray-400 dark:border-gray-700">3</span>
+        <span data-step-text class="hidden text-sm text-gray-400 sm:block">Payment</span>
+      </button>
     </li>
   </ol>
 
@@ -112,11 +140,18 @@
       </p>
     </aside>
 
-    <!-- ---------------- CHECKOUT FORM (right, 3 of 5 cols) ---------------- -->
-    <form class="space-y-8 lg:col-span-3" novalidate data-checkout-form>
+    <!-- ---------------- CHECKOUT FORM (right, 3 of 5 cols) ----------------
+         NO novalidate: native constraint validation stays ON for the final
+         submit. Each STEP still gates forward movement itself (explicit
+         checkValidity/reportValidity — hidden panels never block the other).
+         Two panels, one form: the stepper + initCheckout show one at a time.
+         ====================================================================== -->
+    <form class="space-y-8 lg:col-span-3" data-checkout-form>
+      <!-- STEP 1 PANEL — contact + address + shipping method -->
+      <div data-step-panel="1" class="space-y-8">
       <!-- SECTION TEMPLATE: fieldset + legend = semantic grouping.
-           fieldset/legend tell screen readers "these inputs belong together" —
-           <div>+<h3> shows the same visually but says nothing to AT. (a11y) -->
+            fieldset/legend tell screen readers "these inputs belong together" —
+            <div>+<h3> shows the same visually but says nothing to AT. (a11y) -->
       <fieldset class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <legend class="px-2 text-sm font-semibold">Contact</legend>
 
@@ -207,6 +242,9 @@
 
            Accessibility kept: sr-only not display:none — screen readers and
            keyboards still see the real control. (a11y)
+           required on a radio group is group-wide: ONE required anywhere in
+           the name="shipping" group gates them all — and the checked default
+           means step 1 never blocks on an unanswered question.
            ===================================================================== -->
 
       <fieldset class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
@@ -220,7 +258,7 @@
                  The label ALSO gets peer-focus-visible? focus lands on input;
                  has-[:focus-visible] on the label mirrors the ring. -->
           <label class="relative flex cursor-pointer items-center gap-3 rounded-xl border border-gray-300 p-4 transition hover:bg-gray-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 dark:border-gray-600 dark:hover:bg-gray-800 dark:has-[:checked]:border-brand-500 dark:has-[:checked]:bg-brand-900/30">
-            <input type="radio" name="shipping" value="standard" class="peer sr-only" />
+            <input type="radio" name="shipping" value="standard" required class="peer sr-only" />
             <!-- Custom radio OUT: 16px circle, transparent center.
                  Custom radio IN: peer-checked → brand border + brand fill.
                  Because the dot is a SIBLING of the input (input is the
@@ -236,7 +274,7 @@
           </label>
 
           <label class="relative flex cursor-pointer items-center gap-3 rounded-xl border border-gray-300 p-4 transition hover:bg-gray-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 dark:border-gray-600 dark:hover:bg-gray-800 dark:has-[:checked]:border-brand-500 dark:has-[:checked]:bg-brand-900/30">
-            <input type="radio" name="shipping" value="express" class="peer sr-only" checked />
+            <input type="radio" name="shipping" value="express" required class="peer sr-only" checked />
             <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 transition peer-checked:border-brand-600 dark:border-gray-500" aria-hidden="true">
               <span class="h-2.5 w-2.5 scale-0 rounded-full bg-brand-600 transition-transform peer-checked:scale-100 dark:bg-brand-400"></span>
             </span>
@@ -248,7 +286,7 @@
           </label>
 
           <label class="relative flex cursor-pointer items-center gap-3 rounded-xl border border-gray-300 p-4 transition hover:bg-gray-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 dark:border-gray-600 dark:hover:bg-gray-800 dark:has-[:checked]:border-brand-500 dark:has-[:checked]:bg-brand-900/30">
-            <input type="radio" name="shipping" value="overnight" class="peer sr-only" />
+            <input type="radio" name="shipping" value="overnight" required class="peer sr-only" />
             <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 transition peer-checked:border-brand-600 dark:border-gray-500" aria-hidden="true">
               <span class="h-2.5 w-2.5 scale-0 rounded-full bg-brand-600 transition-transform peer-checked:scale-100 dark:bg-brand-400"></span>
             </span>
@@ -260,6 +298,28 @@
           </label>
         </div>
       </fieldset>
+
+      <!-- STEP 1 GATE — only way forward: validates this panel's controls,
+           browser bubble on failure (reportValidity), step swap on success. -->
+      <button
+        type="button"
+        data-continue-btn
+        class="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+      >
+        Continue to payment
+      </button>
+      </div><!-- /step 1 panel -->
+
+      <!-- STEP 2 PANEL — payment. Hidden until step 1 validates. -->
+      <div data-step-panel="2" hidden class="space-y-8">
+      <!-- Back to a COMPLETED step — always allowed, never gated. -->
+      <button
+        type="button"
+        data-step-back
+        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+      >
+        ← Back to shipping
+      </button>
 
       <!-- PAYMENT -->
       <fieldset class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
@@ -305,21 +365,24 @@
         </label>
       </div>
 
-      <button
-        type="submit"
-        data-pay-btn
-        disabled
-        class="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition
-               enabled:hover:bg-brand-700
-               disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500
-               dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
-      >
-        <!-- disabled has THREE signals: gray fill, muted text, not-allowed cursor.
-             enabled:hover:* scopes hover ONLY to the enabled state — otherwise
-             a disabled button would still react to hover, which lies. -->
-        Pay $200.00
-      </button>
-      <p class="text-center text-xs text-gray-400">Demo form — no payment is processed.</p>
+      <div>
+        <button
+          type="submit"
+          data-pay-btn
+          disabled
+          class="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition
+                 enabled:hover:bg-brand-700
+                 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500
+                 dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
+        >
+          <!-- disabled has THREE signals: gray fill, muted text, not-allowed cursor.
+               enabled:hover:* scopes hover ONLY to the enabled state — otherwise
+               a disabled button would still react to hover, which lies. -->
+          Pay $200.00
+        </button>
+        <p class="mt-3 text-center text-xs text-gray-400">Demo form — no payment is processed.</p>
+      </div>
+      </div><!-- /step 2 panel -->
     </form>
   </div>
 </div>

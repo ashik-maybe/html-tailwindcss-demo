@@ -36,7 +36,7 @@ const views = {
   landing: { html: landing },
   dashboard: { html: dashboard, init: initDashboard },
   table: { html: table, init: initTable }, // real 42-row dataset + pagination
-  checkout: { html: checkout },
+  checkout: { html: checkout, init: initCheckout }, // real 3-step flow
   auth: { html: auth },
   chat: { html: chat, init: initChat },
   settings: { html: settings, init: initSettings },
@@ -935,6 +935,147 @@ function initBlog(root) {
       })
     })
   })
+}
+
+// -----------------------------------------------------------------------------
+// initCheckout — real 3-step flow: validated Continue, back-to-completed
+// only, computed stepper states (checkout.html)
+// -----------------------------------------------------------------------------
+function initCheckout(root) {
+  const form = root.querySelector('[data-checkout-form]')
+  if (!form) return
+
+  const panel1 = root.querySelector('[data-step-panel="1"]')
+  const panel2 = root.querySelector('[data-step-panel="2"]')
+  const sub = root.querySelector('[data-checkout-sub]')
+  const continueBtn = root.querySelector('[data-continue-btn]')
+  const backBtn = root.querySelector('[data-step-back]')
+  const payBtn = root.querySelector('[data-pay-btn]')
+  const stepBtns = [...root.querySelectorAll('[data-step-go]')]
+  const dots = [...root.querySelectorAll('[data-step-dot]')]
+  const texts = [...root.querySelectorAll('[data-step-text]')]
+  const conns = [...root.querySelectorAll('[data-step-connector]')]
+
+  // Active stepper step: 2 = Shipping (form panel 1), 3 = Payment (panel 2).
+  // Cart (1) is complete from the start. `paid` marks the whole flow done.
+  let step = 2
+  let paid = false
+
+  // Full class LISTS as string literals — Tailwind's scanner only emits
+  // utilities it can see in source, and these strings live in JS. (Same
+  // reason the table ships rowHtml and chat ships bubble classes.)
+  const DOT = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold'
+  const TEXT = 'hidden text-sm sm:block'
+  const DONE = {
+    dot: 'bg-brand-600 border-2 border-brand-600 text-white',
+    text: 'font-medium text-gray-900 dark:text-gray-100',
+  }
+  const CURRENT = {
+    dot: 'border-2 border-brand-600 bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300',
+    text: 'font-semibold text-brand-700 dark:text-brand-300',
+  }
+  const TODO = {
+    dot: 'border-2 border-gray-200 text-gray-400 dark:border-gray-700',
+    text: 'text-gray-400',
+  }
+
+  // Inputs before buttons: landing on the first field is the useful jump
+  // (panel 2's first BUTTON is "← Back", not the card number).
+  const focusFirst = (panel) =>
+    (panel?.querySelector('input, select, textarea') || panel?.querySelector('button'))?.focus()
+
+  function render() {
+    stepBtns.forEach((btn, i) => {
+      const n = i + 1
+      const state = paid || n < step ? DONE : n === step ? CURRENT : TODO
+      dots[i].className = `${DOT} ${state.dot}`
+      dots[i].textContent = state === DONE ? '✓' : String(n)
+      texts[i].className = `${TEXT} ${state.text}`
+
+      if (n === step) btn.setAttribute('aria-current', 'step')
+      else btn.removeAttribute('aria-current')
+
+      // Future steps are NOT reachable — declare that with aria-disabled
+      // instead of accepting clicks and staying silent. The current step
+      // stays live: clicking it re-focuses its panel (visible feedback).
+      btn.setAttribute('aria-disabled', String(!paid && n > step))
+    })
+
+    // Connector i leads to step i+2: brand once that step has been reached.
+    conns.forEach((conn, i) => {
+      const reached = paid || i + 2 <= step
+      conn.className = `h-px flex-1 ${reached ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-700'}`
+    })
+
+    // One panel on screen at a time — the stepper never lies about state.
+    panel1.hidden = step === 3
+    panel2.hidden = step !== 3
+
+    if (sub) {
+      sub.textContent = paid
+        ? 'Order confirmed (demo) — nothing was charged.'
+        : `Almost there — ${step === 2 ? '2 steps' : '1 step'} left.`
+    }
+  }
+
+  stepBtns.forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      const n = i + 1
+      // aria-disabled = announced as disabled; returning here is not "silent
+      // action", it's respecting a declared state.
+      if (!paid && n > step) return
+
+      if (n === 1) {
+        // The cart lives in the Shop view — a completed step is a real way
+        // back to where the order started, not a dead dot.
+        switchView('shop')
+        return
+      }
+      step = n // back-to-completed (n === step just re-focuses the panel)
+      render()
+      focusFirst(step === 3 ? panel2 : panel1)
+    })
+  })
+
+  continueBtn?.addEventListener('click', () => {
+    // Per-step gate: checkValidity() = silent boolean, reportValidity() =
+    // browser bubble + focus + scroll. Query THIS PANEL's controls — a whole
+    // form check would also test the hidden step-2 card fields.
+    const invalid = [...panel1.querySelectorAll('input, select, textarea')].find(
+      (el) => !el.checkValidity(),
+    )
+    if (invalid) {
+      invalid.reportValidity() // names the field, fixes focus, no JS UI needed (a11y)
+      return
+    }
+    step = 3
+    render()
+    focusFirst(panel2)
+  })
+
+  backBtn?.addEventListener('click', () => {
+    step = 2 // completed steps: always allowed back, never re-validated
+    render()
+    focusFirst(panel1)
+  })
+
+  form.addEventListener('submit', (event) => {
+    // novalidate was REMOVED from the markup: by the time this handler runs,
+    // the browser has already accepted every field (invalid → no submit).
+    event.preventDefault()
+    paid = true
+    if (payBtn) {
+      payBtn.disabled = true // no double-charging, demo or not
+      payBtn.textContent = 'Order placed ✓'
+    }
+    // Lock the terms box: re-ticking it would re-enable Pay (global handler
+    // in the shell), reopening an order that's already placed.
+    root.querySelector('[data-agree]')?.toggleAttribute('disabled', true)
+    render()
+    showToast('Demo — nothing was charged')
+  })
+
+  render() // normalize states + declare future steps before first paint
 }
 
 // -----------------------------------------------------------------------------
