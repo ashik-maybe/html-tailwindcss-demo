@@ -4,187 +4,187 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tailwind v4 Demo — Phase 0</title>
+    <title>Tailwind v4 Pattern Library</title>
   </head>
-  <!--
-    HOW TO READ A TAILWIND CLASS CHAIN (left → right):
-      flex items-center justify-between gap-4 px-6 py-3
-      ───── ─────────────────────────────── ─────── ───────
-      layout   alignment inside the flex      spacing around content
-    Rough order in real code:
-      1. layout/display (flex, grid, block, hidden)
-      2. sizing      (w-64, h-full, max-w-7xl, flex-1)
-      3. spacing     (gap-4, p-6, mt-8)      — Tailwind scale: 1 unit = 0.25rem = 4px
-      4. typography  (text-lg, font-semibold)
-      5. visual      (bg-white, rounded-xl, shadow, border)
-      6. states      (hover:, focus:, group-hover:, disabled:)  ← modifier prefixes
-      7. responsive  (sm:, md:, lg:)         ← ALWAYS last in the chain
-      8. dark        (dark:)                 ← variant, works anywhere but style it last
-    Nothing about the order changes CSS output — this is purely for humans
-    scanning your markup. Consistency makes code readable.
-  -->
-  <body class="bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
-    <!-- MINI DEMO HEADER — flex row, space pushed to edges with justify-between -->
-    <header class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-      <span class="text-sm font-semibold tracking-wide text-brand-600 dark:text-brand-400">
-        Phase 0 — Tailwind v4 is live
-      </span>
 
-      <!-- Dark-mode toggle button. JS in src/main.js flips class "dark" on <html>,
-           which activates every dark:* utility on the page at once. -->
+  <!--
+    APP SHELL
+    ========
+    This page is the persistent chrome of the demo SPA:
+      sidebar (this file)  →  always visible, switches content
+      <main id="view">     →  filled by src/main.js with src/views/*.html
+
+    The shell never reloads — only the contents of #view change.
+    Lesson: this is how every real SPA (React/Vue/Svelte) works too;
+    frameworks only make the same DOM swap faster with a virtual DOM.
+  -->
+
+  <!--
+    BODY = horizontal flex row.
+      flex           children sit side by side (sidebar | content)
+      min-h-screen   always at least viewport height (h-screen = exactly)
+      bg-gray-50 / dark:bg-gray-950  page tone, flips with .dark on <html>
+  -->
+  <body class="flex min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <!-- =============================================================================
+         MOBILE TOP BAR — only visible below lg (the sidebar's breakpoint).
+         lg:hidden = display:none at ≥1024px.
+         Fixing the layout problem: on phones there is no room for a sidebar,
+         so navigation lives behind a hamburger that opens a "drawer".
+         ============================================================================== -->
+    <header class="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 lg:hidden dark:border-gray-800 dark:bg-gray-900">
+      <!-- aria-label tells screen readers what the icon-only button DOES.
+           Visible text is hidden with sr-only-like visuals; never ship an
+           unlabeled button. (a11y) -->
       <button
-        id="theme-toggle"
+        id="drawer-open"
         type="button"
-        class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm transition
-               hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+        aria-label="Open navigation"
+        aria-expanded="false"
+        aria-controls="sidebar"
+        class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900
+               focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none
+               dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
       >
-        Toggle dark mode
+        <!-- Hamburger drawn with 3 spans — no icon library needed.
+             w-5 = width 1.25rem; h-0.5 = 2px line; gap between lines = space-y via flex-col gap -->
+        <span class="flex w-5 flex-col gap-1.5" aria-hidden="true">
+          <!-- aria-hidden="true" = decorative, screen readers skip it (a11y) -->
+          <span class="h-0.5 w-full rounded bg-current"></span>
+          <span class="h-0.5 w-full rounded bg-current"></span>
+          <span class="h-0.5 w-full rounded bg-current"></span>
+        </span>
+      </button>
+
+      <span class="text-sm font-semibold text-brand-600 dark:text-brand-400">Tailwind v4 Library</span>
+
+      <!-- Small-screen dark toggle (the sidebar's copy is hidden below lg). -->
+      <button
+        id="theme-toggle-mobile"
+        type="button"
+        aria-label="Toggle dark mode"
+        class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100
+               focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none
+               dark:text-gray-400 dark:hover:bg-gray-800"
+      >
+        <span aria-hidden="true">◐</span>
       </button>
     </header>
 
-    <main class="mx-auto max-w-6xl px-6 py-16">
-      <!-- =============================================================================
-           LESSON 1 — GRADIENT TEXT
-           =============================================================================
-           bg-gradient-to-r    background gradient flowing left → right (to right)
-           from-indigo-500     gradient START color
-           to-pink-500         gradient END color
-           bg-clip-text        clip (crop) the background to the shape of the TEXT
-           text-transparent    make the real text color invisible
-           → the gradient shows through the letter shapes only.
-           Alternative: bg-gradient-to-br (diagonal), from-*/via-*/to-* (3 stops). -->
-      <h1 class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent text-5xl font-extrabold tracking-tight sm:text-6xl">
-        Build any UI with Tailwind CSS
-      </h1>
+    <!-- =============================================================================
+         SIDEBAR DRAWER
+         Positioning explained:
+           fixed  = out of document flow, pinned to viewport (survives scrolling)
+                    used on mobile so content can slide underneath
+           lg:sticky + lg:top-0  = from 1024px up it returns to normal flow but
+                    sticks to the top while the page scrolls — like a rail.
+           -translate-x-full = moved 100% of its own width to the LEFT (off-screen).
+                    lg:translate-x-0 parks it back in place at the breakpoint.
+           transform is GPU-composited → animates smoother than left/margin.
+           z-40 = stacking order: above content (z auto) but below nothing yet.
+         ============================================================================== -->
+    <aside
+      id="sidebar"
+      class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-gray-200 bg-white transition-transform duration-200
+             lg:sticky lg:top-0 lg:h-screen lg:translate-x-0
+             dark:border-gray-800 dark:bg-gray-900"
+      aria-label="Page type navigation"
+    >
+      <!-- Sidebar brand area -->
+      <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+        <!-- font-display token (from @theme in style.css) → this exact font stack -->
+        <p class="font-semibold tracking-tight">Tailwind v4 Library</p>
+        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Real-world page patterns</p>
+      </div>
 
-      <!-- Paragraph: max-w-prose caps line length (~65 chars) for readability.
-           text-balance (v3.4+/v4) asks the browser to even out line widths. -->
-      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 text-balance dark:text-gray-400">
-        Utilities compose in HTML instead of custom CSS. Every class below is a
-        small, single-purpose rule Tailwind generated because this file uses it.
-      </p>
+      <!--
+        NAVIGATION
+        Each button carries data-view="<id>" — src/main.js listens for clicks
+        on the whole nav (event delegation) and swaps #view's HTML.
+        One listener for N buttons instead of N listeners = cheaper,
+        and keeps working for buttons added in later phases without JS edits.
 
-      <!-- =============================================================================
-           LESSON 2 — RESPONSIVE GRID (mobile-first)
-           =============================================================================
-           grid             container becomes a CSS grid
-           gap-6            24px gutters BETWEEN cells (both directions)
-           sm:grid-cols-2  ≥640px wide → 2 columns
-           lg:grid-cols-3  ≥1024px wide → 3 columns
-           (no sm:/lg: prefix → base style)
-
-           Mobile-first means the BASE is the smallest screen and variants ADD
-           power as the screen grows. You never write a "desktop-first" media
-           query by hand — Tailwind generates
-             @media (min-width: 640px)  { .sm\:grid-cols-2 { ... } }
-           automatically.
-
-           Each card below also carries sizing (aspect-video), visual (rounded, border),
-           and state (hover) utilities — see comments inside. -->
-      <section class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <!-- CARD — base = simple bordered box; hover = lifts and casts a shadow. -->
-        <article
-          class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300
-                 hover:-translate-y-1 hover:shadow-lg
-                 dark:border-gray-800 dark:bg-gray-900"
-        >
-          <!-- LESSON 3 — GROUP HOVER
-               `group` is a MARKER class (no styles of its own) put on a parent.
-               `group-hover:*` on any CHILD applies only while the PARENT is hovered.
-               Lets one hover target drive styling on descendants —
-               no JavaScript required. -->
-          <div
-            class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 transition
-                   group-hover:bg-indigo-600 group-hover:text-white
-                   dark:bg-indigo-950 dark:text-indigo-400 dark:group-hover:bg-indigo-500 dark:group-hover:text-white"
-          >
-            <!-- Placeholder icon glyph -->
-            <span class="text-xl font-bold">01</span>
-          </div>
-
-          <h2 class="text-lg font-semibold">Hover-sensitive children</h2>
-          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Parent has <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">group</code>,
-            child has <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">group-hover:</code>.
-            The icon inverts color when you point at the whole card.
-          </p>
-        </article>
-
-        <article
-          class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300
-                 hover:-translate-y-1 hover:shadow-lg
-                 dark:border-gray-800 dark:bg-gray-900"
-        >
-          <div
-            class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 transition
-                   group-hover:bg-emerald-600 group-hover:text-white
-                   dark:bg-emerald-950 dark:text-emerald-400 dark:group-hover:bg-emerald-500 dark:group-hover:text-white"
-          >
-            <span class="text-xl font-bold">02</span>
-          </div>
-
-          <h2 class="text-lg font-semibold">Transitions, not magic</h2>
-          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">transition</code>
-            animates whatever property changes (translate, shadow, color) over ~150ms by default.
-            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">duration-300</code>
-            slows it to 300ms.
-          </p>
-        </article>
-
-        <article
-          class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300
-                 hover:-translate-y-1 hover:shadow-lg
-                 dark:border-gray-800 dark:bg-gray-900"
-        >
-          <div
-            class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600 transition
-                   group-hover:bg-amber-600 group-hover:text-white
-                   dark:bg-amber-950 dark:text-amber-400 dark:group-hover:bg-amber-500 dark:group-hover:text-white"
-          >
-            <span class="text-xl font-bold">03</span>
-          </div>
-
-          <h2 class="text-lg font-semibold">Dark mode pairs</h2>
-          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Notice <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">dark:bg-*</code>
-            and <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">dark:text-*</code>
-            sitting next to every light value. Toggle the button above —
-            the whole page flips because <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">.dark</code>
-            lives on <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">&lt;html&gt;</code>.
-          </p>
-        </article>
-      </section>
-
-      <!-- =============================================================================
-           LESSON 4 — BREAKPOINT CHEAT SHEET (visible proof)
-           Every sm:/md:/lg: below is generated only if these class names appear in a file.
-           Resize the window and watch the box grow. -->
-      <section
-        class="mt-12 rounded-2xl border border-dashed border-brand-300 bg-brand-50 p-6
-               dark:border-brand-800 dark:bg-brand-900/30"
-      >
-        <p class="text-sm font-medium text-brand-700 dark:text-brand-300">
-          base: 1 column (phone) →
-          <span class="sm:hidden">showing base</span>
-          <span class="hidden sm:inline">sm 640px+: 2 cols</span>
-          <span class="hidden md:inline">md 768px+: still 2</span>
-          <span class="hidden lg:inline">lg 1024px+: 3 cols — you are here</span>
+        Grouped headings mirror how real dashboards organise long navs:
+        a flat list of 11 links is hard to scan; 4 labelled groups are easy.
+      -->
+      <nav class="flex-1 overflow-y-auto px-3 py-4" aria-label="Views">
+        <!-- GROUP: Marketing -->
+        <p class="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          Marketing
         </p>
+        <ul class="space-y-1">
+          <li>
+            <!--
+              Active state pattern (applied/removed by JS):
+                active    = bg-brand-50 text-brand-700   (tinted rail item)
+                default   = text-gray-600 hover:bg-gray-100
+              aria-current="page" is the SCREEN READER version of "active" —
+              without it, visually-abled users see the highlight, blind users hear nothing. (a11y)
+            -->
+            <button
+              type="button"
+              data-view="landing"
+              aria-current="page"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition
+                     bg-brand-50 text-brand-700
+                     hover:bg-brand-100
+                     focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none
+                     dark:bg-brand-900/30 dark:text-brand-300 dark:hover:bg-brand-900/50"
+            >
+              <span aria-hidden="true">🚀</span>
+              Landing / Hero
+            </button>
+          </li>
+        </ul>
 
-        <div class="mt-4 grid gap-4 text-center text-sm font-semibold text-white sm:grid-cols-2 lg:grid-cols-3">
-          <div class="rounded-lg bg-brand-500 px-4 py-6">base</div>
-          <div class="rounded-lg bg-brand-600 px-4 py-6">sm: ≥640px</div>
-          <div class="rounded-lg bg-brand-700 px-4 py-6">lg: ≥1024px</div>
-        </div>
-      </section>
+        <!-- Groups below fill in as Phases 2-5 land their views.
+             Applications (chat, dashboard, table, settings) · Forms (checkout, auth) · Utility (faq, states) -->
 
-      <!-- Footer — simple flex, wraps on small screens (flex-wrap).
-           Items stack (full width) on phones, sit in a row on wider screens. -->
-      <footer class="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-6 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-        <span>html-tailwindcss-demo — Phase 0</span>
-        <span class="font-mono text-xs">src/style.css · vite.config.js · .github/workflows/deploy.yml</span>
-      </footer>
+        <div class="mt-5 space-y-1" data-group-placeholder></div>
+      </nav>
+
+      <!-- Sidebar footer: dark-mode toggle + phase hint -->
+      <div class="border-t border-gray-200 p-3 dark:border-gray-800">
+        <button
+          id="theme-toggle"
+          type="button"
+          class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 transition
+                 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none
+                 dark:text-gray-400 dark:hover:bg-gray-800"
+        >
+          <span aria-hidden="true">◐</span>
+          Toggle dark mode
+        </button>
+        <p class="px-3 pt-2 text-[11px] text-gray-400 dark:text-gray-500">Phase 1 of 6 — 1 view</p>
+      </div>
+    </aside>
+
+    <!--
+      BACKDROP (scrim): dims the page behind the open drawer on mobile.
+      fixed inset-0 = covers the whole viewport.
+      hidden + lg:hidden below = JS toggles the `hidden` class;
+      lg:hidden forces it off entirely at desktop widths (no drawer, no scrim).
+      Clicking it closes the drawer — expected mobile UX. (a11y)
+    -->
+    <div
+      id="drawer-backdrop"
+      class="fixed inset-0 z-30 hidden bg-black/50 lg:hidden"
+      role="presentation"
+    ></div>
+
+    <!--
+      CONTENT COLUMN
+        flex-1  = take all remaining horizontal space after the sidebar
+        min-w-0 = opt OUT of flexbox's automatic min-width:auto —
+                  without it, wide children (tables, long words) would blow
+                  the layout sideways instead of scrolling internally.
+        The mobile top bar is fixed, so main needs top padding below lg
+        to clear it: pt-14 lg:pt-0 (14 × 0.25rem = 3.5rem ≈ bar height).
+    -->
+    <main id="view" class="min-w-0 flex-1 pt-14 lg:pt-0" tabindex="-1">
+      <!-- View HTML is injected here by src/main.js. tabindex="-1" lets
+           programmatic focus land here after a view switch (a11y: keyboard
+           users continue from the new content, not the old nav position). -->
     </main>
 
     <script type="module" src="/src/main.js"></script>

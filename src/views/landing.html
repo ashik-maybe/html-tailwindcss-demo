@@ -1,0 +1,441 @@
+<!-- =============================================================================
+     VIEW: LANDING / MARKETING HERO
+     =============================================================================
+     Injected into #view by src/main.js. Lessons on this page:
+       1. gradient text            bg-clip-text + text-transparent
+       2. responsive hero grid     grid lg:grid-cols-2 (stacks on phones)
+       3. feature cards            group + group-hover (parent-driven child states)
+       4. pricing tiers            md:grid-cols-3 + absolute "Most Popular" badge
+       5. footer                   md:grid-cols-4 (4 link columns ≥768px)
+       6. sticky marketing navbar  sticky top-0 + backdrop-blur (frosted glass)
+
+     Semantic structure (a11y): header > nav, main landmarks, footer — screen
+     readers navigate by these landmarks, divs alone give them nothing.
+     ============================================================================== -->
+
+<div>
+  <!-- ===========================================================================
+       MARKETING NAVBAR
+       sticky top-0  = sticks to viewport top while content scrolls under it.
+                       (The app-shell sidebar is separate; this is the PAGE's own nav.)
+       backdrop-blur = frosts whatever slides beneath — pair with bg-white/80:
+                       the /80 opacity lets the blur show through.
+       z-20          = above hero content, below the app drawer (z-40).
+       ======================================================================== -->
+  <header class="sticky top-0 z-20 border-b border-gray-200/60 bg-white/80 backdrop-blur-md dark:border-gray-800/60 dark:bg-gray-950/80">
+    <!-- max-w-7xl px-6 = centred, capped content width (80rem) with gutters.
+         justify-between pushes logo left, actions right — classic flex bar. -->
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <a href="#" class="flex items-center gap-2 font-bold tracking-tight">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 text-sm text-white" aria-hidden="true">
+          N
+        </span>
+        Nimbus
+      </a>
+
+      <!-- Links hidden below md — not enough room; the CTAs stay visible instead
+           of shipping a hamburger that does nothing. Honest responsive > fake UI. -->
+      <nav class="hidden items-center gap-8 text-sm font-medium text-gray-600 md:flex dark:text-gray-300" aria-label="Marketing">
+        <a href="#features" class="transition hover:text-gray-900 dark:hover:text-white">Features</a>
+        <a href="#pricing" class="transition hover:text-gray-900 dark:hover:text-white">Pricing</a>
+        <a href="#" class="transition hover:text-gray-900 dark:hover:text-white">Docs</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="#" class="hidden text-sm font-medium text-gray-600 transition hover:text-gray-900 sm:block dark:text-gray-300 dark:hover:text-white">
+          Sign in
+        </a>
+        <!-- Primary CTA. rounded-full pill, brand color, hover darkens one step
+             (500 → 600): the standard "lift without moving" button hover. -->
+        <a href="#" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none">
+          Start free
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- =========================================================================
+         HERO
+         grid gap-12 lg:grid-cols-2 — ONE column on phones/tablets, two ≥1024px.
+         Why not flex? Grid handles the equal-height columns + gap in one line,
+         and future rows (if content grows) stay aligned automatically.
+         items-center = both columns vertically centred, not top-aligned.
+         ====================================================================== -->
+    <section class="mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:py-28">
+      <!-- LEFT: copy -->
+      <div>
+        <!-- Announcement pill — badge pattern: small text, tinted bg, full radius.
+             inline-flex (not flex): the pill shrinks to its TEXT width instead
+             of stretching. gap-2 spaces icon from label. -->
+        <span class="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+          <span class="h-1.5 w-1.5 rounded-full bg-indigo-500" aria-hidden="true"></span>
+          v2.0 — now with AI workflows
+        </span>
+
+        <!-- LESSON 1 — GRADIENT TEXT
+             bg-gradient-to-r      gradient flows left → right
+             from-/via-/to-        three color stops
+             bg-clip-text          crop background to the glyphs
+             text-transparent      hide the plain text color
+             Trailing text-sizing (text-5xl sm:text-6xl) — mobile-first:
+             base size for phones, BIGGER at sm:. Reverse order (text-6xl base
+             then text-5xl) is desktop-first thinking — avoid it. -->
+        <h1 class="mt-6 bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 bg-clip-text text-transparent text-5xl font-extrabold leading-tight tracking-tight sm:text-6xl">
+          Ship beautiful UIs, 10× faster
+        </h1>
+
+        <!-- text-balance asks the browser to even out ragged line lengths —
+             big display headings read badly with one short orphan word. -->
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-gray-600 text-balance dark:text-gray-400">
+          Every layout, form and dashboard pattern you need — composed with
+          Tailwind CSS v4 utilities, fully responsive, dark-mode ready.
+        </p>
+
+        <!-- Button row: flex-wrap lets it break to two lines on narrow phones
+             instead of overflowing. gap-3 = space between buttons. -->
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a href="#pricing" class="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none">
+            Start 14-day trial
+          </a>
+          <!-- Secondary button: outline style = border + transparent bg.
+               hover:bg-gray-50 gives feedback without competing with primary. -->
+          <a href="#features" class="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+            See how it works
+          </a>
+        </div>
+
+        <!-- Trust line — small muted text under CTAs (conversion pattern). -->
+        <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+          No credit card required · Cancel anytime
+        </p>
+      </div>
+
+      <!-- RIGHT: product mock — built from divs, no image needed.
+           Decorative only, so the whole block is aria-hidden: screen readers
+           gain nothing from "fake dashboard" geometry. (a11y) -->
+      <div class="relative" aria-hidden="true">
+        <!-- Gradient halo behind the card: absolute positions it OUT of flow
+             relative to the parent (.relative); blur melts it into a glow;
+             -z-10 sends it behind the card. -->
+        <div class="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-indigo-500/30 via-purple-500/20 to-pink-500/30 blur-2xl"></div>
+
+        <!-- Mock app window -->
+        <div class="relative rounded-2xl border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+          <!-- Title bar dots — pure decoration, hence aria-hidden (inherited). -->
+          <div class="flex items-center gap-1.5 border-b border-gray-100 pb-4 dark:border-gray-800">
+            <span class="h-2.5 w-2.5 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+          </div>
+
+          <!-- Mini stat row — grid of 3 on every width inside the mock
+               (sm: not needed: container already narrow). -->
+          <div class="grid grid-cols-3 gap-3 py-4">
+            <div class="rounded-xl bg-gray-50 p-3 dark:bg-gray-800">
+              <p class="text-[10px] uppercase tracking-wide text-gray-400">Revenue</p>
+              <p class="mt-1 text-sm font-bold">$48.2k</p>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-3 dark:bg-gray-800">
+              <p class="text-[10px] uppercase tracking-wide text-gray-400">Users</p>
+              <p class="mt-1 text-sm font-bold">12,904</p>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-3 dark:bg-gray-800">
+              <p class="text-[10px] uppercase tracking-wide text-gray-400">Growth</p>
+              <p class="mt-1 text-sm font-bold text-emerald-600">+23%</p>
+            </div>
+          </div>
+
+          <!-- Fake bar chart: flex items-end + per-bar height.
+               items-end aligns bars on a shared BASELINE (the bottom).
+               Each bar sets its own h-[…%] — the % resolves against the
+               fixed-height parent (h-32) → relative bar heights like a real chart.
+               Inline style=height is deliberate: percentage heights aren't
+               on Tailwind's spacing scale — arbitrary h-[45%] also works. -->
+          <div class="flex h-32 items-end gap-2 rounded-xl bg-gray-50 px-3 pt-3 dark:bg-gray-800">
+            <div class="w-full rounded-t bg-indigo-200 dark:bg-indigo-900" style="height: 35%"></div>
+            <div class="w-full rounded-t bg-indigo-300 dark:bg-indigo-800" style="height: 55%"></div>
+            <div class="w-full rounded-t bg-indigo-400 dark:bg-indigo-700" style="height: 42%"></div>
+            <div class="w-full rounded-t bg-indigo-500" style="height: 78%"></div>
+            <div class="w-full rounded-t bg-brand-500" style="height: 100%"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         LOGO STRIP — social proof band.
+         flex-wrap + justify-center: logos wrap into rows on narrow screens.
+         grayscale → color on hover: subtle interactivity on passive content.
+         =================================================================== -->
+    <section class="border-y border-gray-100 bg-white py-8 dark:border-gray-800 dark:bg-gray-900/50">
+      <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-6">
+        <span class="text-sm font-semibold text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300">Acme Corp</span>
+        <span class="text-sm font-semibold text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300">Globex</span>
+        <span class="text-sm font-semibold text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300">Initech</span>
+        <span class="text-sm font-semibold text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300">Umbrella</span>
+        <span class="text-sm font-semibold text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300">Stark Ind.</span>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         FEATURES — LESSON 3: group-hover cards
+         =================================================================== -->
+    <section id="features" class="mx-auto max-w-7xl scroll-mt-24 px-6 py-20">
+      <!-- scroll-mt-24 = scroll-margin, so anchor jumps land BELOW the sticky
+           header instead of hiding the heading under it. Easy to forget! -->
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Features</p>
+        <h2 class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Everything you need to launch</h2>
+        <p class="mt-4 text-gray-600 dark:text-gray-400">
+          Batteries included: layouts, components and patterns — no design degree required.
+        </p>
+      </div>
+
+      <!-- 6 cards: 1 col base → 2 at sm: → 3 at lg:.
+           gap-6 keeps generous gutters; each card gets p-6 of internal air. -->
+      <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- CARD TEMPLATE (repeated 6× with different icon/colors/text)
+             group          = hover scope marker, no styles of its own
+             transition     = smooth the hover changes (translate, shadow, colors)
+             hover:-translate-y-1  = lift 4px on hover (0.25rem × -1)
+             hover:shadow-lg      = richer shadow while lifted
+             BOTH require transition or they snap. -->
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <!-- Icon tile: parent `group` hovered → tile inverts via group-hover:.
+               transition lives HERE too — the tile's color change must animate
+               independently of the card's lift. -->
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-950 dark:text-indigo-400 dark:group-hover:bg-indigo-500 dark:group-hover:text-white" aria-hidden="true">
+            <span class="text-lg font-bold">01</span>
+          </div>
+          <h3 class="mt-4 font-semibold">Responsive grids</h3>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Mobile-first breakpoints: <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">sm:</code>,
+            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">md:</code>,
+            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">lg:</code> — layouts that grow with the screen.
+          </p>
+        </div>
+
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 transition group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950 dark:text-emerald-400 dark:group-hover:bg-emerald-500 dark:group-hover:text-white" aria-hidden="true">
+            <span class="text-lg font-bold">02</span>
+          </div>
+          <h3 class="mt-4 font-semibold">Dark mode built-in</h3>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Class-based <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">dark:</code>
+            variant from a single <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">@custom-variant</code> —
+            toggle lives in the sidebar.
+          </p>
+        </div>
+
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600 transition group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950 dark:text-amber-400 dark:group-hover:bg-amber-500 dark:group-hover:text-white" aria-hidden="true">
+            <span class="text-lg font-bold">03</span>
+          </div>
+          <h3 class="mt-4 font-semibold">State utilities</h3>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Hover, focus, disabled, checked — expressed as classes
+            (<code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">hover:</code>
+            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">focus-visible:</code>
+            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">disabled:</code>), no JS state machines.
+          </p>
+        </div>
+
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 text-sky-600 transition group-hover:bg-sky-600 group-hover:text-white dark:bg-sky-950 dark:text-sky-400 dark:group-hover:bg-sky-500 dark:group-hover:text-white" aria-hidden="true">
+            <span class="text-lg font-bold">04</span>
+          </div>
+          <h3 class="mt-4 font-semibold">Design tokens</h3>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">@theme</code> in
+            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">style.css</code> turns
+            CSS variables into utilities: brand color scales, fonts, radii.
+          </p>
+        </div>
+
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-100 text-rose-600 transition group-hover:bg-rose-600 group-hover:text-white dark:bg-rose-950 dark:text-rose-400 dark:group-hover:bg-rose-500 dark:group-hover:text-white" aria-hidden="true">
+            <span class="text-lg font-bold">05</span>
+          </div>
+          <h3 class="mt-4 font-semibold">Only what you use</h3>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            The build scans your files and ships CSS for used classes only —
+            Phase 0 shipped 20 kB total, framework and all.
+          </p>
+        </div>
+
+        <div class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-violet-600 transition group-hover:bg-violet-600 group-hover:text-white dark:bg-violet-950 dark:text-violet-400 dark:group-hover:bg-violet-500 dark:group-hover:text-white" aria-hidden="true">
+            <span class="text-lg font-bold">06</span>
+          </div>
+          <h3 class="mt-4 font-semibold">Commented source</h3>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Every block explains WHY the classes are there — this whole app is
+            built to be read, not just run.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         PRICING — LESSON 4: 3-column tiers + "Most Popular" badge
+         =================================================================== -->
+    <section id="pricing" class="scroll-mt-24 border-t border-gray-100 bg-gray-50 py-20 dark:border-gray-800 dark:bg-gray-900/40">
+      <div class="mx-auto max-w-7xl px-6">
+        <div class="mx-auto max-w-2xl text-center">
+          <p class="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Pricing</p>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Simple, honest pricing</h2>
+        </div>
+
+        <!-- 3 tiers: stack on phones (natural reading order!), row of 3 ≥768px.
+             items-stretch (default) = cards share the row's height, so the
+             buttons line up at the bottom even when feature lists differ. -->
+        <div class="mt-14 grid gap-8 md:grid-cols-3">
+          <!-- TIER 1 — basic -->
+          <div class="flex flex-col rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+            <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Starter</h3>
+            <p class="mt-4">
+              <span class="text-4xl font-extrabold tracking-tight">$0</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400">/month</span>
+            </p>
+            <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">For trying things out.</p>
+            <ul class="mt-6 flex-1 space-y-3 text-sm text-gray-600 dark:text-gray-400">
+              <!-- flex-1 on the list = absorb extra height so every tier's
+                   button sits at the bottom (shared baseline across columns). -->
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> 1 project</li>
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> Community support</li>
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> Core components</li>
+            </ul>
+            <a href="#" class="mt-8 rounded-xl border border-gray-300 px-4 py-2.5 text-center text-sm font-semibold transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:hover:bg-gray-800">
+              Get started
+            </a>
+          </div>
+
+          <!-- TIER 2 — highlighted
+               ring-2 ring-indigo-600 = 2px OUTSIDE glow ring (not a border:
+               borders eat layout space, rings don't — that's the difference
+               between ring- and border-).
+               relative = anchor point for the badge below. -->
+          <div class="relative flex flex-col rounded-2xl border border-indigo-600 bg-white p-8 shadow-lg ring-2 ring-indigo-600 dark:bg-gray-900">
+            <!-- Badge: absolute -top-3 = 12px above the card edge (needs
+                 relative parent + z-10 to stack above neighbouring cards).
+                 whitespace-nowrap = never wraps mid-phrase at small widths. -->
+            <span class="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white shadow">
+              Most Popular
+            </span>
+
+            <h3 class="text-sm font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">Pro</h3>
+            <p class="mt-4">
+              <span class="text-4xl font-extrabold tracking-tight">$29</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400">/month</span>
+            </p>
+            <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">For growing products.</p>
+            <ul class="mt-6 flex-1 space-y-3 text-sm text-gray-600 dark:text-gray-400">
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> Unlimited projects</li>
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> Priority support</li>
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> All components + blocks</li>
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> Dark mode presets</li>
+            </ul>
+            <!-- Filled primary CTA — the tier we want users to pick. -->
+            <a href="#" class="mt-8 rounded-xl bg-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:outline-none">
+              Start free trial
+            </a>
+          </div>
+
+          <!-- TIER 3 — enterprise -->
+          <div class="flex flex-col rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+            <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Enterprise</h3>
+            <p class="mt-4">
+              <span class="text-4xl font-extrabold tracking-tight">$99</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400">/month</span>
+            </p>
+            <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">For teams at scale.</p>
+            <ul class="mt-6 flex-1 space-y-3 text-sm text-gray-600 dark:text-gray-400">
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> Everything in Pro</li>
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> SSO / SAML</li>
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> Dedicated manager</li>
+              <li class="flex gap-2"><span class="text-emerald-500" aria-hidden="true">✓</span> SLA 99.9%</li>
+            </ul>
+            <a href="#" class="mt-8 rounded-xl border border-gray-300 px-4 py-2.5 text-center text-sm font-semibold transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:hover:bg-gray-800">
+              Contact sales
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         CTA BAND — full-width gradient strip before the footer.
+         Gradient bg + white text: check contrast (indigo-600 ≈ 4.6:1 on white text — passes AA).
+         =================================================================== -->
+    <section class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+      <div class="mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 py-16 text-center">
+        <h2 class="text-3xl font-bold text-white sm:text-4xl">Ready to build something great?</h2>
+        <p class="max-w-xl text-indigo-100">Join 12,000+ developers shipping interfaces with this library.</p>
+        <!-- Inverted button: white on gradient = high contrast, hover to slight transparency. -->
+        <a href="#" class="rounded-full bg-white px-6 py-3 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none">
+          Get started — it’s free
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===========================================================================
+       FOOTER — 4 link columns.
+       grid gap-10 sm:grid-cols-2 lg:grid-cols-4
+         base: single column (links stack — natural phone reading)
+         sm:  2 columns
+         lg:  4 columns
+       mt-auto not needed here (footer is last block anyway).
+       ======================================================================== -->
+  <footer class="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+    <div class="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Brand column -->
+      <div>
+        <a href="#" class="flex items-center gap-2 font-bold tracking-tight">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 text-sm text-white" aria-hidden="true">N</span>
+          Nimbus
+        </a>
+        <p class="mt-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+          The UI library for people who read their own source code.
+        </p>
+      </div>
+
+      <!-- Link columns: repeated pattern — heading + ul of small links.
+           list-disc + pl-5? Marketing footers usually drop bullets
+           (list-style: none via preflight) and space with gap/leading instead. -->
+      <div>
+        <p class="text-sm font-semibold">Product</p>
+        <ul class="mt-4 space-y-2.5 text-sm text-gray-500 dark:text-gray-400">
+          <li><a href="#features" class="transition hover:text-gray-900 dark:hover:text-white">Features</a></li>
+          <li><a href="#pricing" class="transition hover:text-gray-900 dark:hover:text-white">Pricing</a></li>
+          <li><a href="#" class="transition hover:text-gray-900 dark:hover:text-white">Changelog</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-sm font-semibold">Company</p>
+        <ul class="mt-4 space-y-2.5 text-sm text-gray-500 dark:text-gray-400">
+          <li><a href="#" class="transition hover:text-gray-900 dark:hover:text-white">About</a></li>
+          <li><a href="#" class="transition hover:text-gray-900 dark:hover:text-white">Blog</a></li>
+          <li><a href="#" class="transition hover:text-gray-900 dark:hover:text-white">Careers</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-sm font-semibold">Legal</p>
+        <ul class="mt-4 space-y-2.5 text-sm text-gray-500 dark:text-gray-400">
+          <li><a href="#" class="transition hover:text-gray-900 dark:hover:text-white">Privacy</a></li>
+          <li><a href="#" class="transition hover:text-gray-900 dark:hover:text-white">Terms</a></li>
+          <li><a href="#" class="transition hover:text-gray-900 dark:hover:text-white">Security</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom bar: flex + justify-between, wraps below sm via flex-wrap. -->
+    <div class="border-t border-gray-100 dark:border-gray-800">
+      <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-gray-400 dark:text-gray-500">
+        <p>© 2026 Nimbus Inc. All rights reserved.</p>
+        <p>Built with Tailwind CSS v4 + Vite</p>
+      </div>
+    </div>
+  </footer>
+</div>
