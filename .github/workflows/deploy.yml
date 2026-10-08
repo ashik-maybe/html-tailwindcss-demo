@@ -1,0 +1,56 @@
+name: Deploy static site to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+
+  # Manual "Run workflow" button in GitHub Actions
+  workflow_dispatch:
+
+# Permissions required to publish an artifact to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Avoid simultaneous deploys from multiple runs (latest wins)
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build with Vite
+        run: bun run build
+
+      - name: Upload static files as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Vite outputs built assets to `dist/` by default
+          path: "./dist"
+
+  deploy:
+    # Only deploy if we're on the main branch
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

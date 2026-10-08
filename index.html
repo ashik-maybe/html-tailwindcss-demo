@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tailwind v4 Demo — Phase 0</title>
+  </head>
+  <!--
+    HOW TO READ A TAILWIND CLASS CHAIN (left → right):
+      flex items-center justify-between gap-4 px-6 py-3
+      ───── ─────────────────────────────── ─────── ───────
+      layout   alignment inside the flex      spacing around content
+    Rough order in real code:
+      1. layout/display (flex, grid, block, hidden)
+      2. sizing      (w-64, h-full, max-w-7xl, flex-1)
+      3. spacing     (gap-4, p-6, mt-8)      — Tailwind scale: 1 unit = 0.25rem = 4px
+      4. typography  (text-lg, font-semibold)
+      5. visual      (bg-white, rounded-xl, shadow, border)
+      6. states      (hover:, focus:, group-hover:, disabled:)  ← modifier prefixes
+      7. responsive  (sm:, md:, lg:)         ← ALWAYS last in the chain
+      8. dark        (dark:)                 ← variant, works anywhere but style it last
+    Nothing about the order changes CSS output — this is purely for humans
+    scanning your markup. Consistency makes code readable.
+  -->
+  <body class="bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <!-- MINI DEMO HEADER — flex row, space pushed to edges with justify-between -->
+    <header class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+      <span class="text-sm font-semibold tracking-wide text-brand-600 dark:text-brand-400">
+        Phase 0 — Tailwind v4 is live
+      </span>
+
+      <!-- Dark-mode toggle button. JS in src/main.js flips class "dark" on <html>,
+           which activates every dark:* utility on the page at once. -->
+      <button
+        id="theme-toggle"
+        type="button"
+        class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm transition
+               hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+      >
+        Toggle dark mode
+      </button>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-6 py-16">
+      <!-- =============================================================================
+           LESSON 1 — GRADIENT TEXT
+           =============================================================================
+           bg-gradient-to-r    background gradient flowing left → right (to right)
+           from-indigo-500     gradient START color
+           to-pink-500         gradient END color
+           bg-clip-text        clip (crop) the background to the shape of the TEXT
+           text-transparent    make the real text color invisible
+           → the gradient shows through the letter shapes only.
+           Alternative: bg-gradient-to-br (diagonal), from-*/via-*/to-* (3 stops). -->
+      <h1 class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent text-5xl font-extrabold tracking-tight sm:text-6xl">
+        Build any UI with Tailwind CSS
+      </h1>
+
+      <!-- Paragraph: max-w-prose caps line length (~65 chars) for readability.
+           text-balance (v3.4+/v4) asks the browser to even out line widths. -->
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 text-balance dark:text-gray-400">
+        Utilities compose in HTML instead of custom CSS. Every class below is a
+        small, single-purpose rule Tailwind generated because this file uses it.
+      </p>
+
+      <!-- =============================================================================
+           LESSON 2 — RESPONSIVE GRID (mobile-first)
+           =============================================================================
+           grid             container becomes a CSS grid
+           gap-6            24px gutters BETWEEN cells (both directions)
+           sm:grid-cols-2  ≥640px wide → 2 columns
+           lg:grid-cols-3  ≥1024px wide → 3 columns
+           (no sm:/lg: prefix → base style)
+
+           Mobile-first means the BASE is the smallest screen and variants ADD
+           power as the screen grows. You never write a "desktop-first" media
+           query by hand — Tailwind generates
+             @media (min-width: 640px)  { .sm\:grid-cols-2 { ... } }
+           automatically.
+
+           Each card below also carries sizing (aspect-video), visual (rounded, border),
+           and state (hover) utilities — see comments inside. -->
+      <section class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- CARD — base = simple bordered box; hover = lifts and casts a shadow. -->
+        <article
+          class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300
+                 hover:-translate-y-1 hover:shadow-lg
+                 dark:border-gray-800 dark:bg-gray-900"
+        >
+          <!-- LESSON 3 — GROUP HOVER
+               `group` is a MARKER class (no styles of its own) put on a parent.
+               `group-hover:*` on any CHILD applies only while the PARENT is hovered.
+               Lets one hover target drive styling on descendants —
+               no JavaScript required. -->
+          <div
+            class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 transition
+                   group-hover:bg-indigo-600 group-hover:text-white
+                   dark:bg-indigo-950 dark:text-indigo-400 dark:group-hover:bg-indigo-500 dark:group-hover:text-white"
+          >
+            <!-- Placeholder icon glyph -->
+            <span class="text-xl font-bold">01</span>
+          </div>
+
+          <h2 class="text-lg font-semibold">Hover-sensitive children</h2>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Parent has <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">group</code>,
+            child has <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">group-hover:</code>.
+            The icon inverts color when you point at the whole card.
+          </p>
+        </article>
+
+        <article
+          class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300
+                 hover:-translate-y-1 hover:shadow-lg
+                 dark:border-gray-800 dark:bg-gray-900"
+        >
+          <div
+            class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 transition
+                   group-hover:bg-emerald-600 group-hover:text-white
+                   dark:bg-emerald-950 dark:text-emerald-400 dark:group-hover:bg-emerald-500 dark:group-hover:text-white"
+          >
+            <span class="text-xl font-bold">02</span>
+          </div>
+
+          <h2 class="text-lg font-semibold">Transitions, not magic</h2>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">transition</code>
+            animates whatever property changes (translate, shadow, color) over ~150ms by default.
+            <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">duration-300</code>
+            slows it to 300ms.
+          </p>
+        </article>
+
+        <article
+          class="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition duration-300
+                 hover:-translate-y-1 hover:shadow-lg
+                 dark:border-gray-800 dark:bg-gray-900"
+        >
+          <div
+            class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600 transition
+                   group-hover:bg-amber-600 group-hover:text-white
+                   dark:bg-amber-950 dark:text-amber-400 dark:group-hover:bg-amber-500 dark:group-hover:text-white"
+          >
+            <span class="text-xl font-bold">03</span>
+          </div>
+
+          <h2 class="text-lg font-semibold">Dark mode pairs</h2>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Notice <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">dark:bg-*</code>
+            and <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">dark:text-*</code>
+            sitting next to every light value. Toggle the button above —
+            the whole page flips because <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">.dark</code>
+            lives on <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">&lt;html&gt;</code>.
+          </p>
+        </article>
+      </section>
+
+      <!-- =============================================================================
+           LESSON 4 — BREAKPOINT CHEAT SHEET (visible proof)
+           Every sm:/md:/lg: below is generated only if these class names appear in a file.
+           Resize the window and watch the box grow. -->
+      <section
+        class="mt-12 rounded-2xl border border-dashed border-brand-300 bg-brand-50 p-6
+               dark:border-brand-800 dark:bg-brand-900/30"
+      >
+        <p class="text-sm font-medium text-brand-700 dark:text-brand-300">
+          base: 1 column (phone) →
+          <span class="sm:hidden">showing base</span>
+          <span class="hidden sm:inline">sm 640px+: 2 cols</span>
+          <span class="hidden md:inline">md 768px+: still 2</span>
+          <span class="hidden lg:inline">lg 1024px+: 3 cols — you are here</span>
+        </p>
+
+        <div class="mt-4 grid gap-4 text-center text-sm font-semibold text-white sm:grid-cols-2 lg:grid-cols-3">
+          <div class="rounded-lg bg-brand-500 px-4 py-6">base</div>
+          <div class="rounded-lg bg-brand-600 px-4 py-6">sm: ≥640px</div>
+          <div class="rounded-lg bg-brand-700 px-4 py-6">lg: ≥1024px</div>
+        </div>
+      </section>
+
+      <!-- Footer — simple flex, wraps on small screens (flex-wrap).
+           Items stack (full width) on phones, sit in a row on wider screens. -->
+      <footer class="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-6 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
+        <span>html-tailwindcss-demo — Phase 0</span>
+        <span class="font-mono text-xs">src/style.css · vite.config.js · .github/workflows/deploy.yml</span>
+      </footer>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
