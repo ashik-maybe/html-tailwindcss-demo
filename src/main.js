@@ -20,13 +20,22 @@ import dashboard from './views/dashboard.html?raw'
 import table from './views/table.html?raw'
 import checkout from './views/checkout.html?raw'
 import auth from './views/auth.html?raw'
+import chat from './views/chat.html?raw'
+import settings from './views/settings.html?raw'
 
+// Entry shape: { html, init? }. init(root) runs after the HTML is injected
+// and gets the fresh subtree — attach DIRECT listeners there to widgets that
+// only exist while that view is on screen (chat form, settings tabs/modal).
+// Views without per-widget JS just declare html. Function declarations below
+// are hoisted, so referencing them here is safe.
 const views = {
-  landing,
-  dashboard,
-  table,
-  checkout,
-  auth,
+  landing: { html: landing },
+  dashboard: { html: dashboard },
+  table: { html: table },
+  checkout: { html: checkout },
+  auth: { html: auth },
+  chat: { html: chat, init: initChat },
+  settings: { html: settings, init: initSettings },
 }
 
 // Element references — query once at load, reuse forever.
@@ -39,10 +48,15 @@ const drawerOpenBtn = document.querySelector('#drawer-open')
 // switchView — swap #view contents and move the "active" nav highlight
 // -----------------------------------------------------------------------------
 function switchView(id) {
-  const html = views[id]
-  if (!html) return
+  const view = views[id]
+  if (!view) return
 
-  viewEl.innerHTML = html
+  viewEl.innerHTML = view.html
+
+  // Per-view wiring runs against the subtree that was just inserted —
+  // listeners from the previous view died with their nodes, so nothing
+  // leaks or double-fires. (init functions are hoisted function decls)
+  view.init?.(viewEl)
 
   // Active state: ONE nav button gets bg/aria-current, all others lose it.
   // aria-current="page" is how screen readers announce "you are here". (a11y)
@@ -257,6 +271,120 @@ document.addEventListener('submit', (event) => {
     alert.focus({ preventScroll: false })
   }
 })
+
+// -----------------------------------------------------------------------------
+// initChat — history collapse + send flow (chat.html)
+// -----------------------------------------------------------------------------
+function initChat(root) {
+  const history = root.querySelector('[data-chat-history]')
+  const toggle = root.querySelector('[data-chat-history-toggle]')
+  const form = root.querySelector('[data-chat-form]')
+  const input = root.querySelector('[data-chat-input]')
+  const messages = root.querySelector('[data-chat-messages]')
+
+  // Collapse: the aside carries `hidden md:flex` in markup. Toggling
+  // `md:flex` off makes `hidden` win at EVERY width (below md it was never
+  // visible anyway — toggle button is md:block too). aria-expanded must
+  // follow reality or screen reader users hear the wrong state. (a11y)
+  toggle?.addEventListener('click', () => {
+    const expanded = history.classList.toggle('md:flex')
+    toggle.setAttribute('aria-expanded', String(expanded))
+  })
+
+  if (!form || !input || !messages) return
+
+  // Escape HTML before injecting user text — the classic XSS lesson.
+  // <img src=x onerror=…> typed into the chat must stay TEXT, not markup.
+  const escapeHtml = (s) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+  const scrollDown = () => messages.scrollTo({ top: messages.scrollHeight })
+
+  form.addEventListener('submit', (event) => {
+    // form submit already prevented a page reload — but NOT a hash jump;
+    // preventDefault is still the right reflex inside an SPA.
+    event.preventDefault()
+    const text = input.value.trim()
+    if (!text) return // empty send: do nothing (a comment button is worse)
+
+    messages.insertAdjacentHTML(
+      'beforeend',
+      `<div class="max-w-[80%] self-end rounded-2xl rounded-br-sm bg-brand-600 px-4 py-2.5 text-sm leading-relaxed text-white">${escapeHtml(text)}</div>`,
+    )
+    input.value = ''
+    scrollDown()
+
+    // Canned "AI" reply: setTimeout stands in for a real fetch(). The async
+    // shape (send → waiting → reply lands) is exactly what a network call
+    // looks like, so this stays honest about the flow.
+    setTimeout(() => {
+      messages.insertAdjacentHTML(
+        'beforeend',
+        `<div class="max-w-[80%] self-start rounded-2xl rounded-bl-sm border bg-white px-4 py-2.5 text-sm leading-relaxed text-gray-800 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">Canned demo reply — wire this form to a real API to go live.</div>`,
+      )
+      scrollDown()
+    }, 700)
+  })
+}
+
+// -----------------------------------------------------------------------------
+// initSettings — tab switching + native <dialog> modal (settings.html)
+// -----------------------------------------------------------------------------
+function initSettings(root) {
+  // --- Tabs ---------------------------------------------------------------
+  // Segmented control: every button + every panel is scoped to `root`
+  // (this view's subtree), so we can use direct listeners — simpler than
+  // delegation when the set is small and short-lived.
+  const tabs = root.querySelectorAll('[data-tab]')
+  tabs.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.tab
+
+      tabs.forEach((b) => {
+        const on = b === btn
+        // aria-selected = which tab is current; AT announces it. (a11y)
+        b.setAttribute('aria-selected', String(on))
+        // Swap the two class SETS. Booleans in classList.toggle(condition)
+        // read clearly: one set for active, one for idle — same trick the
+        // sidebar nav uses in switchView.
+        b.classList.toggle('bg-white', on)
+        b.classList.toggle('shadow-sm', on)
+        b.classList.toggle('text-gray-900', on)
+        b.classList.toggle('dark:bg-gray-700', on)
+        b.classList.toggle('dark:text-white', on)
+        b.classList.toggle('text-gray-600', !on)
+        b.classList.toggle('hover:text-gray-900', !on)
+        b.classList.toggle('dark:text-gray-400', !on)
+        b.classList.toggle('dark:hover:text-white', !on)
+      })
+
+      root.querySelectorAll('[data-tab-panel]').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.dataset.tabPanel !== id)
+      })
+    })
+  })
+
+  // --- Modal (native <dialog>) -------------------------------------------
+  const modal = root.querySelector('[data-modal]')
+  if (!modal) return
+
+  root.querySelectorAll('[data-modal-open]').forEach((btn) => {
+    // showModal() (not open()): renders in the top layer, dims the page via
+    // ::backdrop, traps focus, and makes Escape close it — all native.
+    btn.addEventListener('click', () => modal.showModal())
+  })
+
+  root.querySelectorAll('[data-modal-close]').forEach((btn) => {
+    btn.addEventListener('click', () => modal.close())
+  })
+
+  // Backdrop click-to-close: a click on the dim layer reports
+  // target === <dialog> itself (all card content is wrapped in a child
+  // div, so it can never match). Clicks inside the card hit descendants.
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) modal.close()
+  })
+}
 
 // -----------------------------------------------------------------------------
 // Escape closes overlays — keyboard users expect it. (a11y)

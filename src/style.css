@@ -88,4 +88,14 @@
      * correctly in each mode. */
     color-scheme: light dark;
   }
+
+  /* Native <dialog> dim layer.
+   * Tailwind has NO utility variant for the ::backdrop pseudo-element
+   * (backdrop-blur etc. are different things — they style backdrop-filter).
+   * So this is the honest place for plain CSS: 3 lines, commented, lives in
+   * base where every dialog picks it up. A good example of knowing when to
+   * drop a utility and just write CSS. */
+  dialog::backdrop {
+    background-color: rgb(0 0 0 / 0.5);
+  }
 }

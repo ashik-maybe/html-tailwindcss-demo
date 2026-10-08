@@ -1,0 +1,380 @@
+<!--
+  ============================================================================
+  SETTINGS — tabs, native <dialog> modal, toggle switches, sticky save bar.
+  ============================================================================
+  Patterns demoed here:
+  - JS tabs: segmented control on the left (buttons), panels swapped with
+    .hidden. aria-selected + role=tab/tablist/tabpanel keep AT in the loop.
+  - Toggle switches: same sibling trick as radios — input, track, knob are
+    all DIRECT children of the label, so peer-checked reaches both.
+  - Modal: the native <dialog> element. showModal() gets you focus trapping,
+    Escape-to-close and top-layer stacking FOR FREE — no JS needed for any
+    of that (see the JS at the bottom of main.js for open/close wiring only).
+  - Sticky save bar: sticks to the viewport bottom while the panel scrolls.
+  ============================================================================
+-->
+<div class="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6">
+
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Profile, billing and notifications for this demo account.
+    </p>
+  </header>
+
+  <!-- Avatar row -->
+  <section
+    class="flex flex-wrap items-center gap-4 rounded-2xl border bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+    aria-label="Profile photo"
+  >
+    <!-- Gradient initials avatar: no image needed, still looks intentional -->
+    <div
+      class="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-brand-500 to-brand-700 text-xl font-bold text-white"
+      aria-hidden="true"
+    >
+      AM
+    </div>
+    <div class="min-w-0">
+      <p class="font-semibold text-gray-900 dark:text-white">Ashik Maybe</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">ashik@example.com</p>
+    </div>
+    <div class="ml-auto flex gap-2">
+      <button
+        type="button"
+        class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+      >
+        Change photo
+      </button>
+      <button
+        type="button"
+        data-modal-open
+        class="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none dark:text-red-400 dark:hover:bg-red-950"
+      >
+        Delete account
+      </button>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <div>
+    <div
+      role="tablist"
+      aria-label="Settings sections"
+      class="flex w-fit gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-800"
+    >
+      <button
+        type="button"
+        role="tab"
+        data-tab="profile"
+        aria-selected="true"
+        class="rounded-lg bg-white px-4 py-1.5 text-sm font-medium text-gray-900 shadow-sm transition focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:bg-gray-700 dark:text-white"
+      >
+        Profile
+      </button>
+      <button
+        type="button"
+        role="tab"
+        data-tab="billing"
+        aria-selected="false"
+        class="rounded-lg px-4 py-1.5 text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white"
+      >
+        Billing
+      </button>
+      <button
+        type="button"
+        role="tab"
+        data-tab="notifications"
+        aria-selected="false"
+        class="rounded-lg px-4 py-1.5 text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white"
+      >
+        Notifications
+      </button>
+    </div>
+
+    <!-- ===================== PANEL: profile ===================== -->
+    <div
+      data-tab-panel="profile"
+      role="tabpanel"
+      class="mt-4 rounded-2xl border bg-white dark:border-gray-800 dark:bg-gray-900"
+    >
+      <!-- Form fields: label ABOVE input (always — placeholder-only labels
+           vanish on focus and fail color-contrast checks). (a11y) -->
+      <div class="grid gap-5 p-6 sm:grid-cols-2">
+        <div>
+          <label
+            for="set-name"
+            class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Full name</label
+          >
+          <input
+            id="set-name"
+            type="text"
+            value="Ashik Maybe"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          />
+        </div>
+        <div>
+          <label
+            for="set-handle"
+            class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Username</label
+          >
+          <div class="flex items-center rounded-lg border border-gray-300 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800">
+            <span class="pl-3 text-sm text-gray-400">@</span>
+            <input
+              id="set-handle"
+              type="text"
+              value="ashik"
+              class="w-full rounded-lg bg-transparent px-2 py-2 text-sm text-gray-900 focus:outline-none dark:text-white"
+            />
+          </div>
+          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+            Prefix wrapper: the border lives on the parent, focus-within lights
+            up the whole group.
+          </p>
+        </div>
+        <div class="sm:col-span-2">
+          <label
+            for="set-bio"
+            class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Bio</label
+          >
+          <textarea
+            id="set-bio"
+            rows="3"
+            placeholder="Anything you want visitors to know…"
+            class="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Sticky save bar: sticks to the viewport bottom while this panel
+           scrolls past it. Only works because no ancestor has
+           overflow-hidden (that would create a new scroll container). -->
+      <div
+        class="sticky bottom-0 flex items-center justify-between gap-3 rounded-b-2xl border-t bg-white/95 px-6 py-4 backdrop-blur dark:border-gray-800 dark:bg-gray-900/95"
+      >
+        <p class="text-xs text-gray-400 dark:text-gray-500">Unsaved changes</p>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PANEL: billing ===================== -->
+    <div
+      data-tab-panel="billing"
+      role="tabpanel"
+      class="mt-4 hidden rounded-2xl border bg-white dark:border-gray-800 dark:bg-gray-900"
+    >
+      <div class="flex flex-wrap items-center gap-3 border-b p-6 dark:border-gray-800">
+        <div>
+          <p class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+            Pro plan
+            <span
+              class="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700 dark:bg-brand-950 dark:text-brand-400"
+              >Active</span
+            >
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            $12/month · renews Nov 8, 2026
+          </p>
+        </div>
+        <div class="ml-auto flex gap-2">
+          <button
+            type="button"
+            class="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+          >
+            Upgrade
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Cancel plan
+          </button>
+        </div>
+      </div>
+
+      <!-- Payment method: masked digits, no real data anywhere. -->
+      <div class="flex items-center gap-3 border-b p-6 dark:border-gray-800">
+        <span
+          class="rounded-md bg-gray-900 px-2 py-1 text-[11px] font-bold text-white dark:bg-gray-700"
+          >VISA</span
+        >
+        <p class="text-sm text-gray-600 dark:text-gray-300">•••• 4242</p>
+        <button
+          type="button"
+          class="ml-auto text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+        >
+          Edit
+        </button>
+      </div>
+
+      <!-- Invoices: divide-y rows instead of a <table> — no column data to
+           align, just a list of "date · amount · link" items. -->
+      <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+        <li class="flex items-center gap-3 px-6 py-3.5 text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Oct 8, 2026</span>
+          <span class="font-medium text-gray-900 dark:text-white">$12.00</span>
+          <a
+            href="#"
+            class="ml-auto font-medium text-brand-600 hover:underline dark:text-brand-400"
+            >Download</a
+          >
+        </li>
+        <li class="flex items-center gap-3 px-6 py-3.5 text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Sep 8, 2026</span>
+          <span class="font-medium text-gray-900 dark:text-white">$12.00</span>
+          <a
+            href="#"
+            class="ml-auto font-medium text-brand-600 hover:underline dark:text-brand-400"
+            >Download</a
+          >
+        </li>
+        <li class="flex items-center gap-3 px-6 py-3.5 text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Aug 8, 2026</span>
+          <span class="font-medium text-gray-900 dark:text-white">$12.00</span>
+          <a
+            href="#"
+            class="ml-auto font-medium text-brand-600 hover:underline dark:text-brand-400"
+            >Download</a
+          >
+        </li>
+      </ul>
+    </div>
+
+    <!-- ===================== PANEL: notifications ===================== -->
+    <div
+      data-tab-panel="notifications"
+      role="tabpanel"
+      class="mt-4 hidden rounded-2xl border bg-white dark:border-gray-800 dark:bg-gray-900"
+    >
+      <!--
+        Toggle switch anatomy (all three are SIBLINGS inside the label):
+          1. input.peer.sr-only  — real checkbox, screen-reader accessible
+          2. track span          — peer-checked changes its background
+          3. knob span           — absolute, peer-checked slides it +1.25rem
+        If the knob were nested INSIDE the track it would NOT be a peer of
+        the input and the translate would never fire. Same trap as before.
+      -->
+      <div class="divide-y divide-gray-100 dark:divide-gray-800">
+        <div class="flex items-center gap-4 px-6 py-4">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              Product updates
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              New features and improvements, once a month.
+            </p>
+          </div>
+          <label class="relative ml-auto inline-flex shrink-0 cursor-pointer items-center">
+            <input type="checkbox" checked class="peer sr-only" />
+            <span
+              class="block h-6 w-11 rounded-full bg-gray-200 transition peer-checked:bg-brand-600 dark:bg-gray-700"
+            ></span>
+            <span
+              class="pointer-events-none absolute top-0.5 left-0.5 block h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"
+            ></span>
+            <span class="sr-only">Toggle product updates</span>
+          </label>
+        </div>
+
+        <div class="flex items-center gap-4 px-6 py-4">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              Security alerts
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Sign-in attempts and password changes.
+            </p>
+          </div>
+          <label class="relative ml-auto inline-flex shrink-0 cursor-pointer items-center">
+            <input type="checkbox" checked class="peer sr-only" />
+            <span
+              class="block h-6 w-11 rounded-full bg-gray-200 transition peer-checked:bg-brand-600 dark:bg-gray-700"
+            ></span>
+            <span
+              class="pointer-events-none absolute top-0.5 left-0.5 block h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"
+            ></span>
+            <span class="sr-only">Toggle security alerts</span>
+          </label>
+        </div>
+
+        <div class="flex items-center gap-4 px-6 py-4">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              Marketing emails
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Tips, offers and the occasional newsletter.
+            </p>
+          </div>
+          <label class="relative ml-auto inline-flex shrink-0 cursor-pointer items-center">
+            <input type="checkbox" class="peer sr-only" />
+            <span
+              class="block h-6 w-11 rounded-full bg-gray-200 transition peer-checked:bg-brand-600 dark:bg-gray-700"
+            ></span>
+            <span
+              class="pointer-events-none absolute top-0.5 left-0.5 block h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"
+            ></span>
+            <span class="sr-only">Toggle marketing emails</span>
+          </label>
+        </div>
+      </div>
+
+      <p class="border-t px-6 py-3 text-xs text-gray-400 dark:border-gray-800 dark:text-gray-500">
+        Changes save automatically — no save button needed for toggles.
+      </p>
+    </div>
+  </div>
+
+  <!--
+    Native <dialog>: NOT rendered until .showModal() is called.
+    p-0 + inner padded div = clicks on the card hit children; clicks on the
+    dim layer report target === <dialog> (see backdrop close in main.js).
+    Esc closes it natively — zero JS for that. (a11y win)
+  -->
+  <dialog
+    data-modal
+    class="m-auto w-[calc(100%_-_2rem)] max-w-md rounded-2xl border bg-white p-0 shadow-xl dark:border-gray-800 dark:bg-gray-900"
+  >
+    <div class="p-6">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Delete account?
+      </h2>
+      <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+        This permanently removes your profile, billing history and
+        conversations. There is no undo — demo data only, so nothing real
+        happens when you confirm.
+      </p>
+      <div class="mt-6 flex justify-end gap-2">
+        <button
+          type="button"
+          data-modal-close
+          class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          data-modal-close
+          class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+          Yes, delete it
+        </button>
+      </div>
+    </div>
+  </dialog>
+</div>
