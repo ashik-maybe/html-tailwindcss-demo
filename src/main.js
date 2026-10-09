@@ -32,6 +32,7 @@ import components from './views/components.html?raw'
 import { escapeHtml, emailOf, initialsOf } from './lib/format.js'
 import { filterMembers, pageWindow } from './lib/table.js'
 import { computePosition } from './lib/position.js'
+import { hashToId, idToHash } from './lib/router.js'
 
 // Entry shape: { html, init? }. init(root) runs after the HTML is injected
 // and gets the fresh subtree — attach DIRECT listeners there to widgets that
@@ -105,6 +106,27 @@ function switchView(id) {
   viewEl.focus({ preventScroll: true })
 }
 
+// -----------------------------------------------------------------------------
+// navigate — the single entry point for view changes, now URL-aware
+// -----------------------------------------------------------------------------
+// Clicking a nav button or CTA calls navigate(id). If the URL already points
+// there we swap immediately (assigning location.hash its current value fires
+// NO hashchange event); otherwise setting the hash hands off to the listener
+// below, which does the actual switch. One code path serves clicks, pasted
+// deep links (#/table) and the browser Back/Forward buttons alike.
+function navigate(id) {
+  if (!views[id]) return
+  if (location.hash === idToHash(id)) switchView(id)
+  else location.hash = idToHash(id)
+}
+
+// The URL is the source of truth. Unknown ids fall back to landing rather than
+// rendering nothing (a typo'd link should still land somewhere real).
+window.addEventListener('hashchange', () => {
+  const id = hashToId(location.hash)
+  switchView(id && views[id] ? id : 'landing')
+})
+
 // Collapse a dropdown menu — used by outside-click AND Escape so both paths
 // behave identically. Focus check first: if a keyboard user was tabbing
 // INSIDE the menu, hiding it would strand focus on a display:none element
@@ -123,11 +145,11 @@ function collapseDropdown(menu) {
 // Instead of attaching listeners to buttons that exist right now, we watch
 // for clicks on document and ask "what did they hit?" via closest().
 // Five behaviours, one listener:
-//   1. [data-view]            → switch views (NAV: also gets the active-state
+//   1. [data-view]            → navigate (NAV: also gets the active-state
 //                                class swap in switchView + feeds the ⌘K
 //                                palette — that's why menu items/CTAs must
 //                                NOT use it: their classes aren't nav classes)
-//   2. [data-goto]            → switch views, no active-state/palette duties
+//   2. [data-goto]            → navigate, no active-state/palette duties
 //   3. [data-toast]           → answer for controls whose real backend isn't
 //                                in this demo (dead clicks teach the wrong
 //                                lesson — every action gets feedback)
@@ -137,14 +159,14 @@ document.addEventListener('click', (event) => {
   // 1. Navigation (nav buttons are <button>s; guard for <a data-view> anyway)
   const navBtn = event.target.closest('[data-view]')
   if (navBtn) {
-    switchView(navBtn.dataset.view)
-    if (navBtn.tagName === 'A') event.preventDefault() // no "#" hash jump
+    navigate(navBtn.dataset.view)
+    if (navBtn.tagName === 'A') event.preventDefault() // let navigate own the URL
   }
 
   // 2. Plain jump: same router, none of the nav duties above.
   const gotoBtn = event.target.closest('[data-goto]')
   if (gotoBtn) {
-    switchView(gotoBtn.dataset.goto)
+    navigate(gotoBtn.dataset.goto)
     if (gotoBtn.tagName === 'A') event.preventDefault()
   }
 
@@ -1832,6 +1854,7 @@ document.querySelectorAll('#theme-toggle, #theme-toggle-mobile').forEach((btn) =
 })
 
 // -----------------------------------------------------------------------------
-// First paint — show the landing view without waiting for a click.
+// First paint — honour a deep link (#/table), else land on the landing view.
 // -----------------------------------------------------------------------------
-switchView('landing')
+const initialId = hashToId(location.hash)
+switchView(initialId && views[initialId] ? initialId : 'landing')
