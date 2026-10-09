@@ -122,11 +122,29 @@
         and keeps working for buttons added in later phases without JS edits.
 
         Grouped headings mirror how real dashboards organise long navs:
-        a flat list of 11 links is hard to scan; 4 labelled groups are easy.
+        a flat list of a dozen links is hard to scan; labelled groups are easy.
       -->
       <nav class="flex-1 overflow-y-auto px-3 py-4" aria-label="Views">
-        <!-- GROUP: Marketing -->
+        <!-- GROUP: Learn — real links (full page navigation) to the standalone
+             teaching pages in src/learning/. Unlike the buttons below, those are
+             complete documents, not SPA views, so they are plain <a href>. -->
         <p class="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          Learn
+        </p>
+        <ul class="space-y-1">
+          <li>
+            <a
+              href="./src/learning/index.html"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-600 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              <span aria-hidden="true">📚</span>
+              Start learning
+            </a>
+          </li>
+        </ul>
+
+        <!-- GROUP: Marketing -->
+        <p class="px-2 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
           Marketing
         </p>
         <ul class="space-y-1">
@@ -306,7 +324,7 @@
           <span aria-hidden="true">◐</span>
           Toggle dark mode
         </button>
-        <p class="px-3 pt-2 text-[11px] text-gray-400 dark:text-gray-500">12 views · all phases complete</p>
+        <p class="px-3 pt-2 text-[11px] text-gray-400 dark:text-gray-500">12 views + 10 lessons · all phases complete</p>
       </div>
     </aside>
 
