@@ -1,7 +1,7 @@
 # Tailwind CSS v4 Pattern Library
 
 A production-shaped SPA built with **Tailwind v4 + Vite + vanilla JavaScript** —
-eleven commented page patterns you can read, break, and copy into real projects.
+twelve commented page patterns you can read, break, and copy into real projects.
 No framework, no build magic beyond Vite: the goal is to show what the
 platform already does before reaching for libraries.
 
@@ -42,6 +42,7 @@ the same job a React/Vue router does, in ~20 lines you can actually read.
 | Shop | `src/views/shop.html` | Product grid, JS sort + favourite toggles, `group-hover` zoom, cart badge |
 | Blog | `src/views/blog.html` | Featured post, card grid, byline, newsletter form |
 | FAQ | `src/views/faq.html` | Native `<details>` accordion, `group-open:` chevron, focus-ringed summaries |
+| Overlays & Pickers | `src/views/components.html` | Anchored positioning (fixed + flip + shift), hover+focus tooltip, popover, keyboard menu, combobox |
 
 Cross-cutting: dark mode everywhere (`@custom-variant`), focus rings on every
 interactive element (`focus-visible:ring-2`), `aria-*` state on everything JS

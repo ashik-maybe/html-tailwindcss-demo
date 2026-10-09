@@ -1,0 +1,108 @@
+<!--
+  ============================================================================
+  COMPONENTS — anchored overlays & keyboard pickers.
+  ============================================================================
+  These are the four widgets every "real" UI toolkit ships and every demo
+  skips: tooltip, popover, menu, combobox. They share one hard problem —
+  a floating box pinned to a trigger — so this view is a lab for that idea.
+
+  All four are built from scratch (no Floating UI / no headless library) so
+  you can SEE the moving parts:
+    - geometry lives in src/main.js positionAnchored()  (fixed + flip + shift)
+    - behaviour lives in src/main.js controllers (delegated hover/focus/keydown)
+  A library would hand you the same behaviour; knowing the machinery is what
+  lets you debug it when it inevitably misbehaves in production.
+  ============================================================================
+-->
+<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Overlays &amp; pickers</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Tooltip, popover, keyboard menu and combobox — keyboard-first, positioned
+      without a library.
+    </p>
+  </header>
+
+  <!-- Rhythm: header→content mt-6, section↔section space-y-8 (32px) -->
+  <div class="mt-6 space-y-8">
+
+    <!-- ============================ TOOLTIP ============================ -->
+    <section aria-labelledby="tooltip-title">
+      <h2 id="tooltip-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+        Tooltip — a label for the unlabelled
+      </h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Opens on hover <span class="font-medium text-gray-700 dark:text-gray-300">and</span>
+        on focus, closes on leave/blur/Escape. A tooltip you can only see with a
+        mouse is a bug, not a feature. Never put a button or link inside one —
+        it vanishes the moment you move the pointer toward it.
+      </p>
+
+      <div class="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <!--
+          The pattern (three parts):
+            1. data-tooltip            = "this trigger has a tooltip" (JS hook)
+            2. aria-describedby="tip-*" = links trigger → tooltip for screen readers
+            3. a [role="tooltip"] element, positioned by positionAnchored()
+          The tooltip sits in normal markup but is `fixed` + `opacity-0`, so it
+          takes no space and can't clip inside the card. JS supplies the position.
+        -->
+        <button
+          type="button"
+          data-tooltip
+          aria-describedby="tip-save"
+          aria-label="Save changes"
+          class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:hover:bg-gray-800"
+        >
+          <span aria-hidden="true">💾</span>
+        </button>
+        <span
+          id="tip-save"
+          role="tooltip"
+          class="pointer-events-none fixed z-50 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 dark:bg-white dark:text-gray-900"
+          >Save changes (⌘S)</span
+        >
+
+        <button
+          type="button"
+          data-tooltip
+          data-tooltip-placement="bottom"
+          aria-describedby="tip-help"
+          aria-label="What is this?"
+          class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:hover:bg-gray-800"
+        >
+          <span aria-hidden="true">❓</span>
+        </button>
+        <!-- data-tooltip-placement flips the default (top) to bottom — handy
+             when a trigger sits at the top edge of the viewport. -->
+        <span
+          id="tip-help"
+          role="tooltip"
+          class="pointer-events-none fixed z-50 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 dark:bg-white dark:text-gray-900"
+          >Opens below — placement override</span
+        >
+
+        <!-- Works on any focusable element, including text links. -->
+        <a
+          href="#"
+          data-tooltip
+          aria-describedby="tip-docs"
+          class="rounded-sm font-medium text-brand-600 hover:underline focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-brand-400"
+          >Documentation</a
+        >
+        <span
+          id="tip-docs"
+          role="tooltip"
+          class="pointer-events-none fixed z-50 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 dark:bg-white dark:text-gray-900"
+          >Keyboard: Tab to a trigger, then Escape to dismiss</span
+        >
+      </div>
+
+      <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+        Applied live on the icon-only controls in Chat (☰ / 📎 / ➤) and on each
+        row's ⋯ button in the Data Table.
+      </p>
+    </section>
+
+  </div>
+</div>

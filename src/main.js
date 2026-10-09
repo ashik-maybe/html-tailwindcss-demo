@@ -26,6 +26,7 @@ import shop from './views/shop.html?raw'
 import blog from './views/blog.html?raw'
 import faq from './views/faq.html?raw'
 import states from './views/states.html?raw'
+import components from './views/components.html?raw'
 
 // Entry shape: { html, init? }. init(root) runs after the HTML is injected
 // and gets the fresh subtree — attach DIRECT listeners there to widgets that
@@ -44,6 +45,7 @@ const views = {
   blog: { html: blog, init: initBlog }, // category pills filter + newsletter
   faq: { html: faq }, // native <details>, zero JS by design
   states: { html: states, init: initStates },
+  components: { html: components }, // overlays & pickers: tooltip ships (delegated); popover/menu/combobox get init in 13b/13c
 }
 
 // Element references — query once at load, reuse forever.
@@ -88,6 +90,7 @@ function switchView(id) {
   })
 
   closeDrawer()
+  hideTooltip() // the tooltip element dies with the view — don't leave state pointing at it
 
   // Move scroll to top — each view is a fresh "page".
   window.scrollTo({ top: 0 })
@@ -296,7 +299,8 @@ function rowHtml(m, i) {
     <td class="px-5 py-3"><div class="flex -space-x-2">${faces}${overflow}</div></td>
     <td class="px-5 py-3 text-gray-600 dark:text-gray-400">${escapeHtml(m.last)}</td>
     <td class="px-5 py-3 text-right">
-      <button type="button" data-row-action="${name}" aria-label="Row actions for ${name}" class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:hover:bg-gray-800 dark:hover:text-gray-300">⋯</button>
+      <button type="button" data-row-action="${name}" aria-label="Row actions for ${name}" data-tooltip data-tooltip-placement="top-end" aria-describedby="tip-row-${i}" class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:hover:bg-gray-800 dark:hover:text-gray-300">⋯</button>
+      <span id="tip-row-${i}" role="tooltip" class="pointer-events-none fixed z-50 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 dark:bg-white dark:text-gray-900">Row actions</span>
     </td>
   </tr>`
 }
@@ -1110,10 +1114,153 @@ function initStates(root) {
 }
 
 // -----------------------------------------------------------------------------
+// Anchored overlays — the positioning engine
+// -----------------------------------------------------------------------------
+// A tooltip, a popover, a menu and the combobox listbox are the SAME animal:
+// a floating box pinned to a trigger. So the geometry lives here once, and the
+// four widgets above just describe WHERE they want to sit. (Reused below.)
+//
+// `position: fixed` + getBoundingClientRect() = viewport coordinates, immune
+// to any ancestor's overflow/transform clipping. The trade-off: a fixed box
+// does NOT follow its anchor, so callers must reposition on scroll/resize
+// (see the tracked-floats registry right after this).
+//
+// placement = "side-align":
+//   side  ∈ top | bottom      (which side of the anchor)
+//   align ∈ start | end | center  (how the box lines up along that edge)
+// FLIP  = if the chosen side overflows the viewport, use the other side.
+// SHIFT = clamp horizontally so the box never runs off-screen.
+// This is a ~30-line version of what Floating UI / Popper resolve in hundreds.
+function positionAnchored(anchor, floating, options = {}) {
+  const { placement = 'bottom-start', offset = 8, margin = 8 } = options
+  const [side, align = 'center'] = placement.split('-')
+  const a = anchor.getBoundingClientRect()
+  const f = floating.getBoundingClientRect()
+
+  // --- vertical: requested side, then flip if it would overflow ---
+  const roomBelow = window.innerHeight - a.bottom
+  const roomAbove = a.top
+  let top
+  if (side === 'top') {
+    top = a.top - f.height - offset
+    if (top < margin && roomBelow >= roomAbove) top = a.bottom + offset
+  } else {
+    top = a.bottom + offset
+    if (top + f.height > window.innerHeight - margin && roomAbove > roomBelow) {
+      top = a.top - f.height - offset
+    }
+  }
+
+  // --- horizontal: align, then shift to stay inside the viewport ---
+  let left
+  if (align === 'end') left = a.right - f.width
+  else if (align === 'center') left = a.left + (a.width - f.width) / 2
+  else left = a.left
+  left = Math.max(margin, Math.min(left, window.innerWidth - f.width - margin))
+
+  floating.style.position = 'fixed'
+  floating.style.left = `${Math.round(left)}px`
+  floating.style.top = `${Math.round(top)}px`
+}
+
+// Registry of currently-visible floats → their anchor + options, so ONE
+// scroll/resize listener can keep every open overlay glued to the right place.
+const anchoredFloats = new Map()
+const trackFloat = (floating, anchor, options) => anchoredFloats.set(floating, { anchor, options })
+const untrackFloat = (floating) => anchoredFloats.delete(floating)
+const repositionFloats = () =>
+  anchoredFloats.forEach(({ anchor, options }, floating) => positionAnchored(anchor, floating, options))
+
+// capture: true = also hear scroll events from inner overflow containers
+// (the table's `overflow-x-auto` box), not just the page itself.
+window.addEventListener('scroll', repositionFloats, true)
+window.addEventListener('resize', repositionFloats)
+
+// -----------------------------------------------------------------------------
+// Tooltips — hover AND focus, app-wide (delegated)
+// -----------------------------------------------------------------------------
+// Teaching points:
+//   - role="tooltip" + aria-describedby on the trigger: a screen reader reads
+//     the description when the trigger is focused, so the hint isn't visual-only. (a11y)
+//   - Opens on hover AND focus; closes on leave, blur and Escape. A tooltip you
+//     can only see with a mouse excludes keyboard users. (a11y)
+//   - NO interactive content inside a tooltip: it appears on hover, so anything
+//     you'd want to CLICK belongs in a popover instead.
+//   - The label text ships in the view's markup (the referenced element); this
+//     controller only positions and reveals it.
+//
+// Delegated so it works on every view with zero per-view wiring — a trigger
+// only needs `data-tooltip aria-describedby="<id>"`.
+let tooltipTrigger = null
+let tooltipEl = null
+let tooltipShowTimer = null
+
+function showTooltip(trigger) {
+  const el = document.getElementById(trigger.getAttribute('aria-describedby') || '')
+  if (!el) return
+  clearTimeout(tooltipShowTimer)
+  if (tooltipEl && tooltipEl !== el) hideTooltip() // never two at once
+
+  tooltipTrigger = trigger
+  tooltipEl = el
+  const options = { placement: trigger.dataset.tooltipPlacement || 'top', offset: 8 }
+  // Measure AFTER we reveal: a `hidden` element is 0×0 and would be placed
+  // against nothing. The tooltip ships opacity-0 (never hidden), so it has
+  // size to measure while still invisible.
+  positionAnchored(trigger, el, options)
+  trackFloat(el, trigger, options)
+  el.classList.replace('opacity-0', 'opacity-100')
+}
+
+function hideTooltip() {
+  clearTimeout(tooltipShowTimer)
+  if (!tooltipEl) return
+  untrackFloat(tooltipEl)
+  tooltipEl.classList.replace('opacity-100', 'opacity-0')
+  tooltipEl = null
+  tooltipTrigger = null
+}
+
+// Hover: wait ~350ms before showing (instant tooltips flicker whenever the
+// pointer merely crosses an icon), hide at once on leave.
+function scheduleTooltip(trigger) {
+  clearTimeout(tooltipShowTimer)
+  tooltipShowTimer = setTimeout(() => showTooltip(trigger), 350)
+}
+
+document.addEventListener('mouseover', (event) => {
+  const trigger = event.target.closest?.('[data-tooltip]')
+  // relatedTarget check: moving within the trigger (e.g. onto its inner icon
+  // span) re-fires mouseover — ignore those, only treat real entrances.
+  if (!trigger || trigger.contains(event.relatedTarget)) return
+  scheduleTooltip(trigger)
+})
+
+document.addEventListener('mouseout', (event) => {
+  const trigger = event.target.closest?.('[data-tooltip]')
+  if (!trigger || trigger.contains(event.relatedTarget)) return
+  clearTimeout(tooltipShowTimer)
+  if (tooltipEl && tooltipTrigger === trigger) hideTooltip()
+})
+
+// Keyboard: show at once — a deliberate Tab deserves an immediate answer, not
+// a hover delay. focusout (not blur) bubbles, so one listener covers the app.
+document.addEventListener('focusin', (event) => {
+  const trigger = event.target.closest?.('[data-tooltip]')
+  if (trigger) showTooltip(trigger)
+})
+
+document.addEventListener('focusout', (event) => {
+  const trigger = event.target.closest?.('[data-tooltip]')
+  if (trigger && tooltipTrigger === trigger) hideTooltip()
+})
+
+// -----------------------------------------------------------------------------
 // Escape closes overlays — keyboard users expect it. (a11y)
 // -----------------------------------------------------------------------------
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return
+  hideTooltip()
   closeDrawer()
   closePalette() // hoisted function declaration below — safe to call
   // Also collapse any open dropdown (same rules as outside-click close;
