@@ -50,7 +50,7 @@
  *   --font-display     →  font-display
  *
  * This is the v4 replacement for the `theme.extend` section of tailwind.config.js.
- * Keep custom additions minimal — the built-in palette (gray, indigo, rose, ...)
+ * Keep custom additions minimal — the built-in palette (gray, indigo, red, ...)
  * covers most needs, and using it keeps your code readable to other Tailwind users.
  * -----------------------------------------------------------------------------
  */
@@ -97,5 +97,22 @@
    * drop a utility and just write CSS. */
   dialog::backdrop {
     background-color: rgb(0 0 0 / 0.5);
+  }
+
+  /* Reduced motion — the OS-level "less animation" preference.
+   * One global opt-out: every transition and animation collapses to a
+   * near-zero duration (skeleton pulse, hover lifts, theme cross-fades all
+   * included). !important beats the utility classes on purpose — this is
+   * exactly the rare case where overriding everything is the requirement.
+   * Motion is decoration; honoring this preference is accessibility. (a11y) */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

@@ -758,32 +758,50 @@ function initSettings(root) {
   // Segmented control: every button + every panel is scoped to `root`
   // (this view's subtree), so we can use direct listeners — simpler than
   // delegation when the set is small and short-lived.
-  const tabs = root.querySelectorAll('[data-tab]')
-  tabs.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.tab
+  const tabs = [...root.querySelectorAll('[data-tab]')]
 
-      tabs.forEach((b) => {
-        const on = b === btn
-        // aria-selected = which tab is current; AT announces it. (a11y)
-        b.setAttribute('aria-selected', String(on))
-        // Swap the two class SETS. Booleans in classList.toggle(condition)
-        // read clearly: one set for active, one for idle — same trick the
-        // sidebar nav uses in switchView.
-        b.classList.toggle('bg-white', on)
-        b.classList.toggle('shadow-sm', on)
-        b.classList.toggle('text-gray-900', on)
-        b.classList.toggle('dark:bg-gray-700', on)
-        b.classList.toggle('dark:text-white', on)
-        b.classList.toggle('text-gray-600', !on)
-        b.classList.toggle('hover:text-gray-900', !on)
-        b.classList.toggle('dark:text-gray-400', !on)
-        b.classList.toggle('dark:hover:text-white', !on)
-      })
+  const selectTab = (btn) => {
+    const id = btn.dataset.tab
+    tabs.forEach((b) => {
+      const on = b === btn
+      // aria-selected = which tab is current; AT announces it. (a11y)
+      b.setAttribute('aria-selected', String(on))
+      // Roving tabindex: ONE tab stays in the tab order (the current one),
+      // arrows move between the rest — the WAI-ARIA tablist pattern. (a11y)
+      b.tabIndex = on ? 0 : -1
+      // Swap the two class SETS. Booleans in classList.toggle(condition)
+      // read clearly: one set for active, one for idle — same trick the
+      // sidebar nav uses in switchView.
+      b.classList.toggle('bg-white', on)
+      b.classList.toggle('shadow-sm', on)
+      b.classList.toggle('text-gray-900', on)
+      b.classList.toggle('dark:bg-gray-700', on)
+      b.classList.toggle('dark:text-white', on)
+      b.classList.toggle('text-gray-600', !on)
+      b.classList.toggle('hover:text-gray-900', !on)
+      b.classList.toggle('dark:text-gray-400', !on)
+      b.classList.toggle('dark:hover:text-white', !on)
+    })
 
-      root.querySelectorAll('[data-tab-panel]').forEach((panel) => {
-        panel.classList.toggle('hidden', panel.dataset.tabPanel !== id)
-      })
+    root.querySelectorAll('[data-tab-panel]').forEach((panel) => {
+      panel.classList.toggle('hidden', panel.dataset.tabPanel !== id)
+    })
+  }
+
+  tabs.forEach((btn, i) => {
+    btn.addEventListener('click', () => selectTab(btn))
+    // Arrow keys are what a tablist PROMISES keyboard users (role="tab" sets
+    // that expectation). Selection follows focus — "automatic activation".
+    btn.addEventListener('keydown', (event) => {
+      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
+      let next = null
+      if (event.key === 'Home') next = tabs[0]
+      else if (event.key === 'End') next = tabs[tabs.length - 1]
+      else if (step) next = tabs[(i + step + tabs.length) % tabs.length]
+      if (!next) return
+      event.preventDefault() // arrows must not scroll the page instead
+      selectTab(next)
+      next.focus()
     })
   })
 

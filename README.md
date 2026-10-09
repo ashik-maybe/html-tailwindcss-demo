@@ -18,7 +18,7 @@ bun run build   # output → dist/
 - **`index.html`** — the persistent app shell: sidebar, mobile drawer, dark-mode
   toggle, ⌘K palette, toast host. It never reloads.
 - **`src/main.js`** — view registry, `switchView()`, event delegation, and
-  per-view `init()` hooks. ~500 commented lines.
+  per-view `init()` hooks. ~1,100 commented lines.
 - **`src/views/*.html`** — one file per page, imported as strings with Vite's
   `?raw` suffix (bundled at build time — no runtime `fetch()`).
 - **`src/style.css`** — the CSS-first v4 setup: `@import "tailwindcss"`,
@@ -33,20 +33,22 @@ the same job a React/Vue router does, in ~20 lines you can actually read.
 | --- | --- | --- |
 | Landing / Hero | `src/views/landing.html` | Hero, feature grid, gradient text, footer |
 | SaaS Dashboard | `src/views/dashboard.html` | Stats cards, CSS bar chart, dropdown, activity feed |
-| Data Table | `src/views/table.html` | Search filter, chip toggles, zebra rows, status pills, avatar stacks |
-| AI Chat | `src/views/chat.html` | Viewport-filling flex layout, bubbles, collapsible history, XSS-safe send |
-| Settings | `src/views/settings.html` | JS tabs, native `<dialog>` modal, toggle switches, sticky save bar |
+| Data Table | `src/views/table.html` | Search + status chips, **real 42-row dataset with pagination**, empty state, row actions |
+| AI Chat | `src/views/chat.html` | Viewport-filling flex, bubbles, slide-over history with canned threads, XSS-safe send |
+| Settings | `src/views/settings.html` | Arrow-key tablist, dirty-tracking profile form, native `<dialog>`, toggle switches |
 | Loading & States | `src/views/states.html` | Skeletons, empty state, `role="alert"` error, toasts |
-| Checkout & Billing | `src/views/checkout.html` | Stepper, `peer`/`:has()` radio cards, disabled→enabled pay gate, sticky summary |
+| Checkout & Billing | `src/views/checkout.html` | **Real 3-step stepper** (per-step `checkValidity`), `peer`/`:has()` radio cards, disabled→enabled pay gate, sticky summary |
 | Authentication | `src/views/auth.html` | Split screen, social buttons, error alert with focus management |
-| Shop | `src/views/shop.html` | Responsive product grid, `group-hover` zoom, cart badge + toast |
+| Shop | `src/views/shop.html` | Product grid, JS sort + favourite toggles, `group-hover` zoom, cart badge |
 | Blog | `src/views/blog.html` | Featured post, card grid, byline, newsletter form |
-| FAQ | `src/views/faq.html` | Native `<details>` accordion, `group-open:` chevron |
+| FAQ | `src/views/faq.html` | Native `<details>` accordion, `group-open:` chevron, focus-ringed summaries |
 
 Cross-cutting: dark mode everywhere (`@custom-variant`), focus rings on every
 interactive element (`focus-visible:ring-2`), `aria-*` state on everything JS
-toggles, event delegation instead of per-button listeners, and comments that
-explain **why** a class was chosen — not just what it does.
+toggles, event delegation instead of per-button listeners, a global
+`prefers-reduced-motion` opt-out, one locked primary-button/input/heading
+spec, and comments that explain **why** a class was chosen — not just what it
+does.
 
 ## Deploy (GitHub Pages)
 
@@ -57,7 +59,7 @@ In the repo settings set **Pages → Source: GitHub Actions**.
 ## Suggested reading order
 
 1. `index.html` — the shell and why an SPA needs one.
-2. `src/style.css` — v4's CSS-first config in 90 lines.
+2. `src/style.css` — v4's CSS-first config in ~120 lines.
 3. `src/main.js` top half — registry + `switchView` + delegation.
 4. `src/views/landing.html` → `checkout.html` → `chat.html` — from static to
    interactive, easiest to hardest.
