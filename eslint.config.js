@@ -8,7 +8,15 @@ import globals from 'globals'
 export default [
   // Never lint build output or generated test artifacts.
   {
-    ignores: ['dist/**', 'node_modules/**', 'playwright-report/**', 'test-results/**', 'coverage/**'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'playwright-report/**',
+      'test-results/**',
+      'coverage/**',
+      // app/ is a separate package with its own eslint.config.js (JSX/React).
+      'app/**',
+    ],
   },
 
   // Baseline recommended rules for every JS file.

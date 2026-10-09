@@ -18,6 +18,13 @@ playwright-report
 blob-report
 playwright/.cache
 
+# app/ (full-stack task manager — own package)
+app/node_modules
+app/dist
+app/data
+app/test-results
+app/playwright-report
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
