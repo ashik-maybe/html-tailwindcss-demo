@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { api } from '../api.js'
+import { useState, type FormEvent } from 'react'
+import { api } from '../api'
+import type { User } from '../types'
 
 const inputClass =
   'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none'
@@ -8,8 +9,8 @@ const buttonClass =
 
 // One form, two modes. On success the parent swaps to the task board — the
 // server has already set the session cookie, so nothing else is needed here.
-export default function AuthScreen({ onAuth }) {
-  const [mode, setMode] = useState('login')
+export default function AuthScreen({ onAuth }: { onAuth: (user: User) => void }) {
+  const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -17,7 +18,7 @@ export default function AuthScreen({ onAuth }) {
 
   const isLogin = mode === 'login'
 
-  async function submit(event) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
     setBusy(true)
@@ -26,7 +27,7 @@ export default function AuthScreen({ onAuth }) {
       const { user } = await call(email, password)
       onAuth(user)
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setBusy(false)
     }

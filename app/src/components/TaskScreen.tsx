@@ -1,21 +1,22 @@
-import { useEffect, useMemo, useState } from 'react'
-import { api } from '../api.js'
-import TaskItem from './TaskItem.jsx'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { api } from '../api'
+import type { Filter, Task, User } from '../types'
+import TaskItem from './TaskItem'
 
 const inputClass =
   'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none'
 
-const FILTERS = [
+const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'active', label: 'Active' },
   { id: 'done', label: 'Done' },
 ]
 
-export default function TaskScreen({ user, onLogout }) {
-  const [tasks, setTasks] = useState([])
+export default function TaskScreen({ user, onLogout }: { user: User; onLogout: () => void }) {
+  const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState<Filter>('all')
   const [title, setTitle] = useState('')
   const [project, setProject] = useState('')
 
@@ -25,11 +26,11 @@ export default function TaskScreen({ user, onLogout }) {
     api
       .listTasks()
       .then(({ tasks }) => setTasks(tasks))
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false))
   }, [])
 
-  async function addTask(event) {
+  async function addTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const clean = title.trim()
     if (!clean) return
@@ -39,14 +40,14 @@ export default function TaskScreen({ user, onLogout }) {
       setTitle('')
       setProject('')
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : String(err))
     }
   }
 
   // Optimistic: flip the checkbox immediately, then reconcile with the server.
   // If the request fails we roll back and surface the error — the UI never
   // silently disagrees with the database.
-  async function toggleTask(task) {
+  async function toggleTask(task: Task) {
     const optimistic = { ...task, done: !task.done }
     setTasks((prev) => prev.map((t) => (t.id === task.id ? optimistic : t)))
     try {
@@ -54,20 +55,20 @@ export default function TaskScreen({ user, onLogout }) {
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
     } catch (err) {
       setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)))
-      setError(err.message)
+      setError(err instanceof Error ? err.message : String(err))
     }
   }
 
-  async function deleteTask(task) {
+  async function deleteTask(task: Task) {
     try {
       await api.deleteTask(task.id)
       setTasks((prev) => prev.filter((t) => t.id !== task.id))
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : String(err))
     }
   }
 
-  const counts = useMemo(
+  const counts = useMemo<Record<Filter, number>>(
     () => ({
       all: tasks.length,
       active: tasks.filter((t) => !t.done).length,

@@ -1,15 +1,18 @@
-import { requireAuth } from './auth.js'
+import type { Hono } from 'hono'
+import { requireAuth } from './auth'
+import type { Store } from './store'
+import type { AppEnv } from './types'
 
 // REST surface for tasks. Every route sits behind requireAuth, and every store
 // call is scoped by the logged-in user's id — so "not found" and "not yours"
 // are the same 404, and one user can never touch another's rows.
-export function registerTaskRoutes(app, store) {
+export function registerTaskRoutes(app: Hono<AppEnv>, store: Store) {
   app.get('/api/tasks', requireAuth(store), (c) => {
     return c.json({ tasks: store.tasks.list(c.get('user').id) })
   })
 
   app.post('/api/tasks', requireAuth(store), async (c) => {
-    const body = await c.req.json().catch(() => ({}))
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
     const title = String(body.title ?? '').trim()
     if (!title) return c.json({ error: 'Title is required' }, 400)
 
@@ -19,8 +22,8 @@ export function registerTaskRoutes(app, store) {
   })
 
   app.patch('/api/tasks/:id', requireAuth(store), async (c) => {
-    const body = await c.req.json().catch(() => ({}))
-    const patch = {}
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+    const patch: { title?: string; project?: string; done?: boolean } = {}
     if (body.title !== undefined) {
       const title = String(body.title).trim()
       if (!title) return c.json({ error: 'Title cannot be empty' }, 400)

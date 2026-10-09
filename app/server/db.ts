@@ -34,7 +34,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user ON tasks(user_id, done, id);
 
 // openDb returns a ready connection with the schema applied. Pass ':memory:' in
 // tests for a throwaway database that never touches disk.
-export function openDb(path = process.env.DB_PATH ?? 'data/app.db') {
+export function openDb(path: string = process.env.DB_PATH ?? 'data/app.db'): Database {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true })
   const db = new Database(path, { create: true })
   db.exec('PRAGMA journal_mode = WAL;')

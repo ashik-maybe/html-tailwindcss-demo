@@ -4,11 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "bun run scripts/dev.js",
-    "dev:server": "bun --watch server/index.js",
+    "dev:server": "bun --watch server/index.ts",
     "dev:client": "vite",
     "build": "vite build",
-    "start": "NODE_ENV=production bun server/index.js",
+    "start": "NODE_ENV=production bun server/index.ts",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "bun test tests",
     "test:watch": "bun test tests --watch",
     "test:e2e": "playwright test"
@@ -22,10 +23,16 @@
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "eslint": "^10.12.0",
     "globals": "^17.13.0",
     "tailwindcss": "^4.3.3",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.71.1",
     "vite": "^8.3.4"
   }
 }

@@ -1,4 +1,7 @@
-import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
+import type { Context, Hono, MiddlewareHandler } from 'hono'
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
+import type { Store } from './store'
+import type { AppEnv, PublicUser } from './types'
 
 // Auth = three ideas: hash the password (never store it), keep a random session
 // id in an httpOnly cookie (JS can't read it → XSS can't steal it), and look up
@@ -8,7 +11,10 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7 // one week
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD = 8
 
-const publicUser = (row) => ({ id: row.id, email: row.email })
+const publicUser = (row: { id: number; email: string }): PublicUser => ({
+  id: row.id,
+  email: row.email,
+})
 
 // SQLite compares `expires_at` against datetime('now') as text, so store the
 // same 'YYYY-MM-DD HH:MM:SS' (UTC) shape it produces.
@@ -17,7 +23,7 @@ const expiryString = () =>
 
 // Middleware factory: reads the cookie, resolves the user, or stops with 401.
 // Everything after it can trust `c.get('user')` is a real, logged-in user.
-export function requireAuth(store) {
+export function requireAuth(store: Store): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     const sid = getCookie(c, SESSION_COOKIE)
     const session = sid ? store.sessions.find(sid) : null
@@ -26,28 +32,32 @@ export function requireAuth(store) {
       if (sid) store.sessions.remove(sid)
       return c.json({ error: 'Not signed in' }, 401)
     }
-    c.set('user', user)
+    c.set('user', publicUser(user))
     await next()
   }
 }
 
-export function registerAuthRoutes(app, store, { secureCookies = false } = {}) {
+export function registerAuthRoutes(
+  app: Hono<AppEnv>,
+  store: Store,
+  { secureCookies = false }: { secureCookies?: boolean } = {},
+) {
   const cookieOpts = {
     httpOnly: true, // invisible to document.cookie → XSS can't exfiltrate it
-    sameSite: 'Lax', // not sent on cross-site POSTs → basic CSRF protection
+    sameSite: 'Lax' as const, // not sent on cross-site POSTs → basic CSRF protection
     path: '/',
     maxAge: SESSION_TTL_SECONDS,
     secure: secureCookies, // HTTPS-only when deployed (set COOKIE_SECURE=1)
   }
 
-  function startSession(c, userId) {
+  function startSession(c: Context<AppEnv>, userId: number) {
     const token = crypto.randomUUID()
     store.sessions.create(token, userId, expiryString())
     setCookie(c, SESSION_COOKIE, token, cookieOpts)
   }
 
   app.post('/api/auth/register', async (c) => {
-    const body = await c.req.json().catch(() => ({}))
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
     const email = String(body.email ?? '')
       .trim()
       .toLowerCase()
@@ -63,12 +73,13 @@ export function registerAuthRoutes(app, store, { secureCookies = false } = {}) {
 
     const passwordHash = await Bun.password.hash(password) // argon2id by default
     const user = store.users.create(email, passwordHash)
+    if (!user) return c.json({ error: 'Could not create account' }, 500)
     startSession(c, user.id)
     return c.json({ user: publicUser(user) }, 201)
   })
 
   app.post('/api/auth/login', async (c) => {
-    const body = await c.req.json().catch(() => ({}))
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
     const email = String(body.email ?? '')
       .trim()
       .toLowerCase()
@@ -76,7 +87,7 @@ export function registerAuthRoutes(app, store, { secureCookies = false } = {}) {
 
     const user = store.users.findByEmail(email)
     const valid = user ? await Bun.password.verify(password, user.password_hash) : false
-    if (!valid) return c.json({ error: 'Incorrect email or password' }, 401) // same message either way
+    if (!valid || !user) return c.json({ error: 'Incorrect email or password' }, 401)
 
     startSession(c, user.id)
     return c.json({ user: publicUser(user) })
@@ -89,5 +100,5 @@ export function registerAuthRoutes(app, store, { secureCookies = false } = {}) {
     return c.body(null, 204)
   })
 
-  app.get('/api/auth/me', requireAuth(store), (c) => c.json({ user: publicUser(c.get('user')) }))
+  app.get('/api/auth/me', requireAuth(store), (c) => c.json({ user: c.get('user') }))
 }

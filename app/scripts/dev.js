@@ -1,6 +1,6 @@
 // One command for two processes: the API (watch mode) and the Vite dev server.
 // Dependency-free — Bun.spawn does the job, no `concurrently` needed.
-const server = Bun.spawn(['bun', '--watch', 'server/index.js'], {
+const server = Bun.spawn(['bun', '--watch', 'server/index.ts'], {
   stdio: ['inherit', 'inherit', 'inherit'],
 })
 const client = Bun.spawn(['bunx', 'vite'], { stdio: ['inherit', 'inherit', 'inherit'] })

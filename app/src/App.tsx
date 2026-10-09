@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { api } from './api.js'
-import AuthScreen from './components/AuthScreen.jsx'
-import TaskScreen from './components/TaskScreen.jsx'
+import { api } from './api'
+import type { User } from './types'
+import AuthScreen from './components/AuthScreen'
+import TaskScreen from './components/TaskScreen'
 
 // Top level = "who am I?" It asks the API once on load (the httpOnly cookie
 // travels automatically), then shows either the auth screen or the task board.
 export default function App() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

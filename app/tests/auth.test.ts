@@ -1,25 +1,25 @@
 import { describe, test, expect, beforeEach } from 'bun:test'
-import { openDb } from '../server/db.js'
-import { createStore } from '../server/store.js'
-import { createApp } from '../server/app.js'
+import { openDb } from '../server/db'
+import { createStore } from '../server/store'
+import { createApp } from '../server/app'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
-const cookieFrom = (res) => (res.headers.get('set-cookie') ?? '').split(';')[0] // "sid=…"
+const cookieFrom = (res: Response) => (res.headers.get('set-cookie') ?? '').split(';')[0]
 
 describe('auth API', () => {
-  let app
+  let app: ReturnType<typeof createApp>
 
   beforeEach(() => {
     app = createApp({ store: createStore(openDb(':memory:')) })
   })
 
-  const register = (body) =>
+  const register = (body: Record<string, unknown>) =>
     app.request('/api/auth/register', {
       method: 'POST',
       headers: JSON_HEADERS,
       body: JSON.stringify(body),
     })
-  const login = (body) =>
+  const login = (body: Record<string, unknown>) =>
     app.request('/api/auth/login', {
       method: 'POST',
       headers: JSON_HEADERS,
@@ -29,7 +29,7 @@ describe('auth API', () => {
   test('registers a user, normalizes the email, sets an httpOnly cookie', async () => {
     const res = await register({ email: 'A@Example.com ', password: 'password123' })
     expect(res.status).toBe(201)
-    const { user } = await res.json()
+    const { user } = (await res.json()) as { user: { email: string } }
     expect(user.email).toBe('a@example.com')
     const setCookie = res.headers.get('set-cookie')
     expect(setCookie).toContain('sid=')
@@ -49,11 +49,13 @@ describe('auth API', () => {
 
     const bad = await login({ email: 'a@example.com', password: 'wrong-password' })
     expect(bad.status).toBe(401)
-    expect((await bad.json()).error).toBe('Incorrect email or password')
+    expect(((await bad.json()) as { error: string }).error).toBe('Incorrect email or password')
 
     const unknown = await login({ email: 'nobody@example.com', password: 'password123' })
     expect(unknown.status).toBe(401)
-    expect((await unknown.json()).error).toBe('Incorrect email or password')
+    expect(((await unknown.json()) as { error: string }).error).toBe(
+      'Incorrect email or password',
+    )
 
     expect((await login({ email: 'a@example.com', password: 'password123' })).status).toBe(200)
   })
@@ -64,7 +66,7 @@ describe('auth API', () => {
     const cookie = cookieFrom(await register({ email: 'a@example.com', password: 'password123' }))
     const me = await app.request('/api/auth/me', { headers: { cookie } })
     expect(me.status).toBe(200)
-    expect((await me.json()).user.email).toBe('a@example.com')
+    expect(((await me.json()) as { user: { email: string } }).user.email).toBe('a@example.com')
   })
 
   test('logout invalidates the session', async () => {

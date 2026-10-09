@@ -99,7 +99,8 @@ The pattern library is deliberately static. `app/` is the other half: a real
 release every web product needs.
 
 - **Stack:** Bun + [Hono](https://hono.dev) API, SQLite via `bun:sqlite`
-  (no ORM), React 19 + Vite + Tailwind v4 client.
+  (no ORM), React 19 + Vite + Tailwind v4 client — **all written in
+  TypeScript**.
 - **Auth:** passwords hashed with Argon2 (`Bun.password`), random session id in
   an `httpOnly` / `SameSite=Lax` cookie, sessions stored in the DB so they can
   be revoked. Every task query is scoped by `user_id`.
@@ -111,13 +112,15 @@ cd app
 bun install
 bun run dev      # API on :5181 + client on :5180 (Vite proxies /api)
 bun run test     # API unit tests (Bun's test runner)
+bun run typecheck # tsc --noEmit (cold-start type checking)
 bun run test:e2e # Playwright: real browser against the real API
 bun run build && bun run start   # one process serves API + built client
 ```
 
 Layout: `app/server/` (Hono app, auth, tasks, db, store) · `app/src/` (React) ·
 `app/tests/` (API tests) · `app/e2e/` (browser flows). CI in
-`.github/workflows/app.yml` runs lint, unit, e2e, and build on `app/` changes.
+`.github/workflows/app.yml` runs lint, typecheck, unit, e2e, and build on `app/`
+changes.
 
 ## Suggested reading order
 

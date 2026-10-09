@@ -1,7 +1,7 @@
 import { serveStatic } from 'hono/bun'
-import { createApp } from './app.js'
-import { openDb } from './db.js'
-import { createStore } from './store.js'
+import { createApp } from './app'
+import { openDb } from './db'
+import { createStore } from './store'
 
 const store = createStore(openDb())
 store.sessions.removeExpired() // drop stale sessions on boot

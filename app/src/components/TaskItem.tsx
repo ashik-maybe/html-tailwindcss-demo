@@ -1,6 +1,16 @@
+import type { Task } from '../types'
+
 // A single row. Stateless: it only reports intent upward; the parent owns the
 // list, so there is one source of truth.
-export default function TaskItem({ task, onToggle, onDelete }) {
+export default function TaskItem({
+  task,
+  onToggle,
+  onDelete,
+}: {
+  task: Task
+  onToggle: (task: Task) => void
+  onDelete: (task: Task) => void
+}) {
   return (
     <li className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
       <input

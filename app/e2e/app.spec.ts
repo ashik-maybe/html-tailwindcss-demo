@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 // Each test registers a brand-new user, so the shared e2e DB never causes
 // collisions and tests can run in parallel.
 const uniqueEmail = () =>
   `user-${Date.now()}-${Math.random().toString(16).slice(2)}@example.com`
 
-async function signUp(page, email, password = 'password123') {
+async function signUp(page: Page, email: string, password = 'password123') {
   await page.goto('/')
   await page.getByRole('button', { name: /Need an account/ }).click()
   await page.getByLabel('Email').fill(email)

@@ -14,7 +14,7 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: [
     {
-      command: 'bun server/index.js',
+      command: 'bun server/index.ts',
       env: { DB_PATH: 'data/e2e.db', PORT: '4181' },
       url: 'http://localhost:4181/api/health',
       reuseExistingServer: !process.env.CI,
