@@ -12,6 +12,10 @@ import './style.css'
 // of being parsed as a module. Bundled at build time, so there is NO runtime
 // fetch() — opening dist/ from a static host just works.
 //
+// ONE exception: the `api` view (Live Data) fetches from a public API at
+// runtime on purpose, to model the loading/success/empty/error cycle for real.
+// Everything else stays bundled and offline.
+//
 // Each entry: id → HTML string. Views that need JS get an optional init(root)
 // called AFTER insertion (see switchView). Registry grows every phase.
 // -----------------------------------------------------------------------------
@@ -27,6 +31,7 @@ import blog from './views/blog.html?raw'
 import faq from './views/faq.html?raw'
 import states from './views/states.html?raw'
 import components from './views/components.html?raw'
+import api from './views/api.html?raw'
 
 // Pure helpers live in src/lib/ — no DOM, unit-tested with Vitest (tests/).
 import { escapeHtml, emailOf, initialsOf } from './lib/format.js'
@@ -52,6 +57,7 @@ const views = {
   faq: { html: faq }, // native <details>, zero JS by design
   states: { html: states, init: initStates },
   components: { html: components, init: initComponents }, // overlays & pickers
+  api: { html: api, init: initLiveData }, // real fetch: loading/success/empty/error
 }
 
 // Element references — query once at load, reuse forever.
@@ -1151,6 +1157,121 @@ function initStates(root) {
   root.querySelector('[data-retry]')?.addEventListener('click', () => {
     showToast('Retrying… (demo: still unreachable)')
   })
+}
+
+// -----------------------------------------------------------------------------
+// initLiveData — the one view that really calls the network (api.html)
+// -----------------------------------------------------------------------------
+// The whole point: render ALL FOUR states of a request — loading, success,
+// empty, error — and never leave a blank screen. Two production habits baked in:
+//   - AbortController cancels the previous request when a new one starts
+//   - a token guard (`mine !== controller`) drops a stale response that lost the
+//     race, so a slow first call can't overwrite a fast second one
+// Data goes in with textContent, never innerHTML (XSS-safe for foreign payloads).
+const LIVE_ENDPOINT = 'https://dummyjson.com/users?limit=5&select=firstName,lastName,email,age'
+
+function initLiveData(root) {
+  const loadBtn = root.querySelector('[data-live-load]')
+  const modeSelect = root.querySelector('[data-live-mode]')
+  const out = root.querySelector('[data-live-out]')
+  let controller
+
+  const urlFor = (mode) => {
+    if (mode === 'empty') return 'https://dummyjson.com/users?limit=0'
+    if (mode === 'error') return 'https://dummyjson.com/this-endpoint-does-not-exist'
+    return LIVE_ENDPOINT
+  }
+
+  const el = (tag, className, text) => {
+    const node = document.createElement(tag)
+    if (className) node.className = className
+    if (text != null) node.textContent = text // textContent = no HTML injection
+    return node
+  }
+
+  function renderLoading() {
+    const wrap = el('div', 'flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400')
+    wrap.append(
+      el(
+        'span',
+        'inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-brand-500 motion-reduce:animate-none',
+      ),
+      el('span', null, 'Loading users…'),
+    )
+    return wrap
+  }
+
+  function renderSuccess(users) {
+    const list = el('ul', 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3')
+    users.forEach((u) => {
+      const li = el(
+        'li',
+        'rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900',
+      )
+      const name = [u.firstName, u.lastName].filter(Boolean).join(' ')
+      li.append(
+        el('p', 'font-medium text-gray-900 dark:text-white', name || 'Unnamed'),
+        el('p', 'mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400', u.email ?? ''),
+        el('p', 'mt-1 text-xs text-gray-400 dark:text-gray-500', `Age ${u.age ?? '—'}`),
+      )
+      list.append(li)
+    })
+    const header = el(
+      'p',
+      'mb-3 text-sm text-gray-500 dark:text-gray-400',
+      `Loaded ${users.length} ${users.length === 1 ? 'user' : 'users'} from the API.`,
+    )
+    const wrap = el('div')
+    wrap.append(header, list)
+    return wrap
+  }
+
+  function renderEmpty() {
+    const wrap = el('div', 'text-center')
+    wrap.append(
+      el('p', 'text-sm font-medium text-gray-900 dark:text-white', 'No users returned'),
+      el('p', 'mt-1 text-sm text-gray-500 dark:text-gray-400', 'The request worked, it was just empty.'),
+    )
+    return wrap
+  }
+
+  function renderError(message) {
+    const wrap = el(
+      'div',
+      'rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300',
+    )
+    wrap.append(el('p', 'font-medium', "Couldn't load users"))
+    wrap.append(el('p', 'mt-1', message))
+    const retry = el('button', 'mt-3 font-semibold underline', 'Retry')
+    retry.type = 'button'
+    retry.addEventListener('click', load)
+    wrap.append(retry)
+    return wrap
+  }
+
+  const paint = (node) => out.replaceChildren(node)
+
+  async function load() {
+    controller?.abort() // cancel whatever is still in flight
+    controller = new AbortController()
+    const mine = controller
+
+    paint(renderLoading())
+    try {
+      const res = await fetch(urlFor(modeSelect.value), { signal: controller.signal })
+      if (!res.ok) throw new Error(`Request failed (HTTP ${res.status})`)
+      const data = await res.json()
+      if (mine !== controller) return // a newer request won — drop this result
+      const users = Array.isArray(data.users) ? data.users : []
+      paint(users.length ? renderSuccess(users) : renderEmpty())
+    } catch (error) {
+      if (error?.name === 'AbortError') return // our own cancel, not a failure
+      if (mine !== controller) return
+      paint(renderError(error.message))
+    }
+  }
+
+  loadBtn.addEventListener('click', load)
 }
 
 // -----------------------------------------------------------------------------

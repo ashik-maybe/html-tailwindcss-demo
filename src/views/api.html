@@ -1,0 +1,65 @@
+<!-- =============================================================================
+     VIEW: LIVE DATA (fetch)
+     =============================================================================
+     The one view that talks to the network on purpose. Every other view ships
+     bundled data so the app works offline; here we call a real public API and
+     render all four request states: loading, success, empty, error.
+
+     Why it matters: this is the shape of almost every real screen. Swap the
+     URL for your own backend and the skeleton below is unchanged.
+
+     Wiring lives in initLiveData (src/main.js). Data is inserted with
+     textContent — never innerHTML — so a hostile API payload can't inject markup.
+     ============================================================================== -->
+
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Live Data</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      A real <code class="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">fetch()</code>
+      against a public API — loading, success, empty and error states, with retry
+      and cancellation.
+    </p>
+  </header>
+
+  <!-- CONTROLS — a mode picker lets you force each state deterministically
+       (real APIs can't be told "now return an empty list"). -->
+  <div class="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <label class="text-sm">
+      <span class="mb-1.5 block font-medium text-gray-700 dark:text-gray-300">Response mode</span>
+      <select
+        data-live-mode
+        class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+      >
+        <option value="normal">Normal — 5 users</option>
+        <option value="empty">Empty — 0 users</option>
+        <option value="error">Error — bad endpoint</option>
+      </select>
+    </label>
+
+    <button
+      type="button"
+      data-live-load
+      class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
+    >
+      Load users
+    </button>
+
+    <p class="ml-auto text-xs text-gray-400 dark:text-gray-500">
+      Source: <span class="font-mono">dummyjson.com/users</span>
+    </p>
+  </div>
+
+  <!-- RESULT — aria-live so screen readers hear the outcome change. The JS
+       swaps this element's children through loading → success/empty/error. -->
+  <div
+    data-live-out
+    role="status"
+    aria-live="polite"
+    class="mt-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900"
+  >
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      Press <span class="font-medium text-gray-700 dark:text-gray-300">Load users</span> to call the API.
+    </p>
+  </div>
+</div>
