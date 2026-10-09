@@ -1096,7 +1096,7 @@ function initCheckout(root) {
       if (n === 1) {
         // The cart lives in the Shop view — a completed step is a real way
         // back to where the order started, not a dead dot.
-        switchView('shop')
+        navigate('shop')
         return
       }
       step = n // back-to-completed (n === step just re-focuses the panel)
@@ -1922,7 +1922,7 @@ paletteInput.addEventListener('keydown', (event) => {
     const entry = paletteFiltered[paletteActive]
     if (entry) {
       closePalette()
-      switchView(entry.id)
+      navigate(entry.id) // via navigate, so the URL stays honest
     }
   }
   // Escape: bubbles up to the global handler → closePalette() + drawer.
@@ -1934,7 +1934,7 @@ paletteList.addEventListener('click', (event) => {
   const item = event.target.closest('[data-palette-id]')
   if (!item) return
   closePalette()
-  switchView(item.dataset.paletteId)
+  navigate(item.dataset.paletteId)
 })
 
 // ⌘K on macOS, Ctrl+K everywhere else. metaKey || ctrlKey covers both with
