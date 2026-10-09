@@ -17,19 +17,21 @@ export function registerTaskRoutes(app: Hono<AppEnv>, store: Store) {
     if (!title) return c.json({ error: 'Title is required' }, 400)
 
     const project = String(body.project ?? '').trim()
-    const task = store.tasks.create(c.get('user').id, { title, project })
+    const due = body.due ? String(body.due) : null
+    const task = store.tasks.create(c.get('user').id, { title, project, due })
     return c.json({ task }, 201)
   })
 
   app.patch('/api/tasks/:id', requireAuth(store), async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
-    const patch: { title?: string; project?: string; done?: boolean } = {}
+    const patch: { title?: string; project?: string; due?: string | null; done?: boolean } = {}
     if (body.title !== undefined) {
       const title = String(body.title).trim()
       if (!title) return c.json({ error: 'Title cannot be empty' }, 400)
       patch.title = title
     }
     if (body.project !== undefined) patch.project = String(body.project).trim()
+    if (body.due !== undefined) patch.due = body.due ? String(body.due) : null
     if (body.done !== undefined) patch.done = Boolean(body.done)
 
     const task = store.tasks.update(c.get('user').id, Number(c.req.param('id')), patch)

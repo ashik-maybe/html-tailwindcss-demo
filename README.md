@@ -106,6 +106,8 @@ release every web product needs.
   be revoked. Every task query is scoped by `user_id`.
 - **API:** `POST /api/auth/register|login|logout`, `GET /api/auth/me`, and
   `GET|POST|PATCH|DELETE /api/tasks` (all task routes require a session).
+- **Features:** create / inline-edit / complete / delete tasks, project tags,
+  due dates with overdue highlighting, and All / Active / Done filters.
 
 ```bash
 cd app

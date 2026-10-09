@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { formatDue, isOverdue } from '../format'
 import type { Task, TaskPatch } from '../types'
 
 const inputClass =
@@ -20,10 +21,12 @@ export default function TaskItem({
   const [editing, setEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(task.title)
   const [draftProject, setDraftProject] = useState(task.project)
+  const [draftDue, setDraftDue] = useState(task.due ?? '')
 
   function startEdit() {
     setDraftTitle(task.title) // seed the draft from the current values
     setDraftProject(task.project)
+    setDraftDue(task.due ?? '')
     setEditing(true)
   }
 
@@ -33,7 +36,11 @@ export default function TaskItem({
     event.preventDefault()
     const title = draftTitle.trim()
     if (!title) return
-    const ok = await onUpdate(task, { title, project: draftProject.trim() })
+    const ok = await onUpdate(task, {
+      title,
+      project: draftProject.trim(),
+      due: draftDue || null,
+    })
     if (ok) setEditing(false)
   }
 
@@ -58,6 +65,13 @@ export default function TaskItem({
             aria-label="Edit task project"
             placeholder="Project"
             className={`${inputClass} sm:w-36`}
+          />
+          <input
+            type="date"
+            value={draftDue}
+            onChange={(e) => setDraftDue(e.target.value)}
+            aria-label="Edit task due date"
+            className={`${inputClass} sm:w-40`}
           />
           <div className="flex gap-2">
             <button
@@ -94,11 +108,24 @@ export default function TaskItem({
         >
           {task.title}
         </p>
-        {task.project && (
-          <span className="mt-0.5 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-            {task.project}
-          </span>
-        )}
+        <div className="flex items-center gap-1.5">
+          {task.project && (
+            <span className="mt-0.5 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+              {task.project}
+            </span>
+          )}
+          {task.due && (
+            <span
+              className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-xs ${
+                !task.done && isOverdue(task.due)
+                  ? 'bg-red-50 text-red-700'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              Due {formatDue(task.due)}
+            </span>
+          )}
+        </div>
       </div>
       <button
         type="button"

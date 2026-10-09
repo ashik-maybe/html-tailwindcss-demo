@@ -19,6 +19,7 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
   const [filter, setFilter] = useState<Filter>('all')
   const [title, setTitle] = useState('')
   const [project, setProject] = useState('')
+  const [due, setDue] = useState('')
 
   // Load once on mount. The list is the single source of truth from here on;
   // mutations update it from the server's response rather than guessing.
@@ -35,10 +36,15 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
     const clean = title.trim()
     if (!clean) return
     try {
-      const { task } = await api.createTask({ title: clean, project: project.trim() })
+      const { task } = await api.createTask({
+        title: clean,
+        project: project.trim(),
+        due: due || null,
+      })
       setTasks((prev) => [task, ...prev])
       setTitle('')
       setProject('')
+      setDue('')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     }
@@ -129,6 +135,13 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
             onChange={(e) => setProject(e.target.value)}
             placeholder="Project (optional)"
             aria-label="New task project"
+            className={`${inputClass} sm:w-40`}
+          />
+          <input
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+            aria-label="New task due date"
             className={`${inputClass} sm:w-40`}
           />
           <button

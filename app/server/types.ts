@@ -33,6 +33,7 @@ export type TaskRow = {
   user_id: number
   title: string
   project: string
+  due: string | null
   done: number
   created_at: string
 }
@@ -42,6 +43,7 @@ export type Task = {
   id: number
   title: string
   project: string
+  due: string | null
   done: boolean
   createdAt: string
 }

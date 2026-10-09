@@ -6,6 +6,7 @@ type TaskFields = {
   id: number
   title: string
   project: string
+  due: string | null
   done: number
   created_at: string
 }
@@ -36,18 +37,18 @@ export function createStore(db: Database) {
   )
 
   const tasksByUser = db.query<TaskRow, [number]>(
-    `SELECT id, title, project, done, created_at
+    `SELECT id, title, project, due, done, created_at
        FROM tasks WHERE user_id = ? ORDER BY done ASC, id DESC`,
   )
-  const insertTask = db.query<TaskFields, [number, string, string]>(
-    `INSERT INTO tasks (user_id, title, project) VALUES (?, ?, ?)
-     RETURNING id, title, project, done, created_at`,
+  const insertTask = db.query<TaskFields, [number, string, string, string | null]>(
+    `INSERT INTO tasks (user_id, title, project, due) VALUES (?, ?, ?, ?)
+     RETURNING id, title, project, due, done, created_at`,
   )
   const taskById = db.query<TaskRow, [number, number]>(
     'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
   )
-  const updateTask = db.query<null, [string, string, number, number, number]>(
-    'UPDATE tasks SET title = ?, project = ?, done = ? WHERE id = ? AND user_id = ?',
+  const updateTask = db.query<null, [string, string, number, string | null, number, number]>(
+    'UPDATE tasks SET title = ?, project = ?, done = ?, due = ? WHERE id = ? AND user_id = ?',
   )
   const deleteTask = db.query<null, [number, number]>(
     'DELETE FROM tasks WHERE id = ? AND user_id = ?',
@@ -57,6 +58,7 @@ export function createStore(db: Database) {
     id: row.id,
     title: row.title,
     project: row.project,
+    due: row.due,
     done: Boolean(row.done),
     createdAt: row.created_at,
   })
@@ -76,8 +78,11 @@ export function createStore(db: Database) {
     },
     tasks: {
       list: (userId: number): Task[] => tasksByUser.all(userId).map(toTask),
-      create: (userId: number, input: { title: string; project?: string }): Task => {
-        const row = insertTask.get(userId, input.title, input.project ?? '')
+      create: (
+        userId: number,
+        input: { title: string; project?: string; due?: string | null },
+      ): Task => {
+        const row = insertTask.get(userId, input.title, input.project ?? '', input.due ?? null)
         return toTask(row as TaskFields)
       },
       get: (userId: number, id: number): Task | null => {
@@ -87,14 +92,15 @@ export function createStore(db: Database) {
       update: (
         userId: number,
         id: number,
-        patch: { title?: string; project?: string; done?: boolean },
+        patch: { title?: string; project?: string; due?: string | null; done?: boolean },
       ): Task | null => {
         const current = taskById.get(id, userId)
         if (!current) return null
         const title = patch.title ?? current.title
         const project = patch.project ?? current.project
+        const due = patch.due === undefined ? current.due : patch.due
         const done = patch.done === undefined ? current.done : patch.done ? 1 : 0
-        updateTask.run(title, project, done, id, userId)
+        updateTask.run(title, project, done, due, id, userId)
         return toTask(taskById.get(id, userId) as TaskFields)
       },
       remove: (userId: number, id: number): boolean => deleteTask.run(id, userId).changes > 0,

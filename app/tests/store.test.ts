@@ -64,4 +64,11 @@ describe('store', () => {
 
     expect(store.tasks.list(user.id).map((t) => t.id)).toEqual([second.id, first.id])
   })
+
+  test('stores a due date and can clear it', () => {
+    const user = store.users.create('a@example.com', 'hash')!
+    const task = store.tasks.create(user.id, { title: 'Ship', due: '2026-03-05' })
+    expect(task.due).toBe('2026-03-05')
+    expect(store.tasks.update(user.id, task.id, { due: null })!.due).toBeNull()
+  })
 })

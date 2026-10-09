@@ -9,6 +9,7 @@ export type Task = {
   id: number
   title: string
   project: string
+  due: string | null
   done: boolean
   createdAt: string
 }
@@ -16,8 +17,9 @@ export type Task = {
 export type TaskInput = {
   title: string
   project: string
+  due: string | null
 }
 
-export type TaskPatch = Partial<Pick<Task, 'title' | 'project' | 'done'>>
+export type TaskPatch = Partial<Pick<Task, 'title' | 'project' | 'due' | 'done'>>
 
 export type Filter = 'all' | 'active' | 'done'

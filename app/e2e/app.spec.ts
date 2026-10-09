@@ -97,3 +97,11 @@ test('edits a task inline, and Escape cancels', async ({ page }) => {
   await expect(page.getByText('New title')).toBeVisible()
   await expect(page.getByText('Discarded')).toHaveCount(0)
 })
+
+test('a task shows its due date', async ({ page }) => {
+  await signUp(page, uniqueEmail())
+  await page.getByLabel('New task title').fill('Pay rent')
+  await page.getByLabel('New task due date').fill('2030-01-15')
+  await page.getByRole('button', { name: 'Add' }).click()
+  await expect(page.getByText(/Due\b.*15/)).toBeVisible()
+})
