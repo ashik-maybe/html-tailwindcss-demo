@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>05 · Animations &amp; transitions</title>
+  </head>
+
+  <!--
+    LESSON 05 — Animations & transitions
+    ===================================
+    Motion tells users what changed. A transition smooths a change between two
+    states (hover, open); an animation runs a keyframe sequence on its own.
+    Use both sparingly, and always offer a way to turn them off.
+  -->
+  <body class="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <header class="sticky top-0 z-20 border-b border-gray-200/70 bg-white/85 backdrop-blur dark:border-gray-800/70 dark:bg-gray-950/85">
+      <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
+        <a href="./index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">← Learn</a>
+        <span data-stage class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"></span>
+        <div class="flex items-center gap-2">
+          <a href="../../index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">App</a>
+          <button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800">◐</button>
+        </div>
+      </div>
+      <div class="h-0.5 bg-gray-100 dark:bg-gray-800"><div data-progress class="h-full bg-brand-500" style="width: 0"></div></div>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-4 py-10">
+      <p class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Intermediate · Lesson 5</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Animations &amp; transitions</h1>
+      <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+        Without motion, a hover state snaps. One class — <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">transition</code>
+        — tells the browser to interpolate between the before and after values
+        instead.
+      </p>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Transitions: smooth a state change</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Put <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">transition</code> on the element,
+          then use any state prefix as usual. Tune it with <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">duration-*</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">ease-*</code>, and <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">delay-*</code>.
+        </p>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Live example — hover both</p>
+          <div class="mt-3 flex flex-wrap gap-4">
+            <button type="button" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-900">No transition (snaps)</button>
+            <button type="button" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-300 hover:bg-gray-900">transition-colors (smooth)</button>
+          </div>
+        </div>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Prefer a specific transition (<code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">transition-colors</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">transition-transform</code>) over
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">transition-all</code> — it's
+          cheaper and avoids animating things you didn't mean to.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Transforms: move, scale, rotate</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Transform utilities change an element without affecting layout around
+          it: <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">translate-y</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">scale</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">rotate</code>. Combine
+          with <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">transition-transform</code>
+          (or just <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">transition</code>).
+          Hover the card:
+        </p>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Live example</p>
+          <div class="mt-3 grid gap-4 sm:grid-cols-3">
+            <div class="rounded-xl border bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">Lifts up</div>
+            <div class="rounded-xl border bg-white p-5 transition hover:scale-105 dark:border-gray-700 dark:bg-gray-800">Grows</div>
+            <div class="rounded-xl border bg-white p-5 transition hover:rotate-3 dark:border-gray-700 dark:bg-gray-800">Tilts</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">group-hover: parent drives the child</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          When the hover is on a parent but you want to style a child, mark the
+          parent <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">group</code> and
+          prefix the child with <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">group-hover:</code>.
+          This is how image-zoom product cards work.
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>&lt;a class="group block overflow-hidden"&gt;
+  &lt;img class="transition duration-300 group-hover:scale-110" src="…" /&gt;
+&lt;/a&gt;</code></pre>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Live example — hover the tile</p>
+          <div class="mt-3 w-40 overflow-hidden rounded-xl border dark:border-gray-700">
+            <div class="group flex h-28 cursor-pointer items-center justify-center bg-gradient-to-br from-brand-500 to-pink-500 text-5xl transition">
+              <span class="transition duration-300 group-hover:scale-125">🚀</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Keyframe animations</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Animations run on their own, looping or playing once. Tailwind ships
+          four: <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">animate-spin</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">animate-ping</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">animate-pulse</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">animate-bounce</code>.
+        </p>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Live example</p>
+          <div class="mt-4 flex items-center gap-6 text-2xl">
+            <span class="inline-block animate-spin">◐</span>
+            <span class="relative inline-flex h-3 w-3"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75"></span><span class="relative inline-flex h-3 w-3 rounded-full bg-brand-500"></span></span>
+            <span class="inline-block animate-bounce">⬇</span>
+          </div>
+        </div>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          For your own, define it in CSS (v4 style) and it becomes a utility.
+          This is where the repo's <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">src/style.css</code> would hold it:
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>@theme {
+  --animate-wiggle: wiggle 0.4s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
+}
+
+/* now `animate-wiggle` exists as a utility */</code></pre>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Respect reduced motion</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Some people get dizzy from motion, and can set an OS preference.
+          Honour it — two ways:
+        </p>
+        <ul class="mt-3 list-disc space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li>Per element: add <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">motion-reduce:animate-none</code> or <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">motion-reduce:transition-none</code>.</li>
+          <li>Globally: one <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">@media (prefers-reduced-motion: reduce)</code> rule that collapses every duration. The app does exactly this in <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">src/style.css</code> so you can't forget.</li>
+        </ul>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Exercise</h2>
+        <ol class="mt-3 list-decimal space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li>Build a card that lifts on hover (<code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">hover:-translate-y-1 hover:shadow-lg transition</code>).</li>
+          <li>Inside it, a button whose background darkens on hover with <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">transition-colors</code>.</li>
+          <li>Add a spinner using <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">animate-spin</code> and a <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">motion-reduce:animate-none</code> next to it.</li>
+          <li>Define one custom <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">--animate-*</code> token and use it.</li>
+        </ol>
+      </section>
+
+      <nav id="lesson-nav"></nav>
+    </main>
+
+    <script type="module" src="./learn.js"></script>
+  </body>
+</html>

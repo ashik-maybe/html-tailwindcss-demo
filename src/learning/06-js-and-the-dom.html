@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>06 · JavaScript &amp; the DOM</title>
+  </head>
+
+  <!--
+    LESSON 06 — JavaScript & the DOM
+    ================================
+    HTML is content. CSS is looks. JavaScript is behaviour: it reacts to clicks,
+    updates the page, and talks to servers. This is the bridge from static
+    pages to the interactive ones in the app.
+  -->
+  <body class="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <header class="sticky top-0 z-20 border-b border-gray-200/70 bg-white/85 backdrop-blur dark:border-gray-800/70 dark:bg-gray-950/85">
+      <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
+        <a href="./index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">← Learn</a>
+        <span data-stage class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"></span>
+        <div class="flex items-center gap-2">
+          <a href="../../index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">App</a>
+          <button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800">◐</button>
+        </div>
+      </div>
+      <div class="h-0.5 bg-gray-100 dark:bg-gray-800"><div data-progress class="h-full bg-brand-500" style="width: 0"></div></div>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-4 py-10">
+      <p class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Intermediate · Lesson 6</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">JavaScript &amp; the DOM</h1>
+      <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+        JavaScript runs in the browser. It can read and change your page through
+        an object model called the <strong>DOM</strong> (Document Object Model):
+        the browser turns your HTML into a tree of elements you can select and
+        mutate. You add a <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">&lt;script&gt;</code>
+        and go.
+      </p>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Select an element</h2>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>const button = document.querySelector('#save')        // first match
+const items  = document.querySelectorAll('.item')     // ALL matches (a list)</code></pre>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">querySelector</code>
+          takes any CSS selector — <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">#id</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">.class</code>,
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">[data-x]</code>. This is why good
+          class/attribute names matter in HTML.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Change it</h2>
+        <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+              <tr><th class="px-3 py-2 font-medium">Code</th><th class="px-3 py-2 font-medium">Effect</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr><td class="px-3 py-2 font-mono text-[12px]">el.textContent = 'Hi'</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">set visible text (safe)</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">el.classList.toggle('on')</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">add/remove a class</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">el.setAttribute('aria-pressed','true')</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">set an attribute</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">el.hidden = true</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">hide it</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Prefer <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">textContent</code>
+          over <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">innerHTML</code> for user
+          input. <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">innerHTML</code> parses
+          text as HTML — feed it a message containing <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">&lt;script&gt;</code>
+          and you have an XSS hole. The app's chat view uses <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">textContent</code> for exactly this reason.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">React to events</h2>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>button.addEventListener('click', () =&gt; {
+  console.log('clicked')
+})</code></pre>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          The callback receives an <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">event</code>
+          object: <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">event.target</code> is the
+          element that was clicked.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Event delegation — the big idea</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          If you have 42 table rows, do you attach 42 listeners? No. Attach
+          <strong>one</strong> to a parent and check what was hit. It survives
+          rows being added or removed, and uses less memory. This is how the
+          entire app is wired (<code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">src/main.js</code> has one click listener for every widget).
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>list.addEventListener('click', (event) =&gt; {
+  const item = event.target.closest('[data-item]')
+  if (!item) return                 // the click missed every item
+  item.classList.toggle('done')
+})</code></pre>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">State + render</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Most UI bugs are state bugs: the variable and the screen disagree. The
+          cure is a rhythm — keep data in a variable, and write one function that
+          paints the screen from it. Change the data, call the function. The
+          app's table does exactly this (<code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">state → render()</code>).
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>let done = false
+
+function render() {
+  box.classList.toggle('bg-green-500', done)
+  box.textContent = done ? 'Done' : 'Todo'
+}
+
+button.addEventListener('click', () =&gt; {
+  done = !done   // 1. change state
+  render()       // 2. paint it
+})</code></pre>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Live example — toggling a list</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">Click items to toggle them. One listener, many items.</p>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+          <ul id="demo-list" class="space-y-2">
+            <li><button type="button" data-item class="w-full rounded-lg border bg-white px-4 py-2 text-left text-sm transition dark:border-gray-700 dark:bg-gray-800">Learn HTML</button></li>
+            <li><button type="button" data-item class="w-full rounded-lg border bg-white px-4 py-2 text-left text-sm transition dark:border-gray-700 dark:bg-gray-800">Learn Tailwind</button></li>
+            <li><button type="button" data-item class="w-full rounded-lg border bg-white px-4 py-2 text-left text-sm transition dark:border-gray-700 dark:bg-gray-800">Learn JavaScript</button></li>
+          </ul>
+        </div>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>// (from this page's own script)
+list.addEventListener('click', (event) =&gt; {
+  const item = event.target.closest('[data-item]')
+  if (!item) return
+  const on = item.classList.toggle('line-through')
+  item.classList.toggle('opacity-60', on)
+  item.setAttribute('aria-pressed', String(on))
+})</code></pre>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">How the app swaps views</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Open <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">src/main.js</code> and read
+          the top. It keeps a registry mapping an id to an HTML string, and
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">switchView(id)</code> sets
+          <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">#view</code> to that string, then runs
+          the view's optional <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">init()</code>.
+          That is the same job React/Vue do — just without the framework.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Exercise</h2>
+        <ol class="mt-3 list-decimal space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li>Add a "Clear all" button that removes <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">line-through</code> from every item.</li>
+          <li>Add an input + button that appends a new item using <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">document.createElement('li')</code> and <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">list.append(...)</code>.</li>
+          <li>Count how many are done and show it in a <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">textContent</code> line that updates in your <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">render()</code>.</li>
+        </ol>
+      </section>
+
+      <nav id="lesson-nav"></nav>
+    </main>
+
+    <script>
+      ;(function () {
+        const list = document.querySelector('#demo-list')
+        list.addEventListener('click', (event) => {
+          const item = event.target.closest('[data-item]')
+          if (!item) return
+          const on = item.classList.toggle('line-through')
+          item.classList.toggle('opacity-60', on)
+          item.setAttribute('aria-pressed', String(on))
+        })
+      })()
+    </script>
+    <script type="module" src="./learn.js"></script>
+  </body>
+</html>
