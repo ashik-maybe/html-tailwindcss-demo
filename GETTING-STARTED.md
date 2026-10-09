@@ -1,7 +1,7 @@
 # Getting Started — beginner to advanced
 
 This repo contains a **teaching track** (`src/learning/`) alongside the
-**pattern library** (the twelve views in the app). This document is the honest
+**pattern library** (the thirteen views in the app). This document is the honest
 roadmap through both, and around them.
 
 There is one thing to say up front, because it will save you months:
@@ -98,7 +98,8 @@ Start the lessons in your browser: open the app (`index.html`) and click
 - Scaffold a React or Vue app, add routing, and manage state without copy-pasting from a tutorial.
 - Pass a keyboard-only and zoom test on your own UI.
 - Read `src/main.js` and see the router, views, and state as separate concerns.
-- Write a unit test and one end-to-end test for a critical flow.
+- Write a unit test and one end-to-end test for a critical flow — the repo's
+  own `tests/` (Vitest) and `e2e/` (Playwright) are working examples to copy.
 
 **External resources**
 - [React](https://react.dev/learn) **or** [Vue](https://vuejs.org/guide/introduction.html) — pick one.
@@ -114,10 +115,11 @@ Start the lessons in your browser: open the app (`index.html`) and click
 
 ## The repo's own exercises
 
-These are in the [README](README.md) and are perfect Stage 2–3 practice:
-add hash routing, rebuild the table search with `:has()`, refactor the shop
-cards into a component function, drive the dashboard chart with custom
-properties, and make the FAQ a single-open accordion.
+These are in the [README](README.md) and are perfect Stage 2–3 practice.
+The first one — hash routing — is now implemented (see `src/lib/router.js`), so
+read it as a worked example; the rest are open: rebuild the table search with
+`:has()`, refactor the shop cards into a component function, drive the dashboard
+chart with custom properties, and make the FAQ a single-open accordion.
 
 ## One last honest note
 
