@@ -71,4 +71,15 @@ describe('store', () => {
     expect(task.due).toBe('2026-03-05')
     expect(store.tasks.update(user.id, task.id, { due: null })!.due).toBeNull()
   })
+
+  test('removes only completed tasks', () => {
+    const user = store.users.create('a@example.com', 'hash')!
+    const keep = store.tasks.create(user.id, { title: 'Keep' })
+    const finish = store.tasks.create(user.id, { title: 'Finish' })
+    store.tasks.update(user.id, finish.id, { done: true })
+
+    expect(store.tasks.removeCompleted(user.id)).toBe(1)
+    expect(store.tasks.get(user.id, keep.id)).not.toBeNull()
+    expect(store.tasks.get(user.id, finish.id)).toBeNull()
+  })
 })

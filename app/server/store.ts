@@ -53,6 +53,9 @@ export function createStore(db: Database) {
   const deleteTask = db.query<null, [number, number]>(
     'DELETE FROM tasks WHERE id = ? AND user_id = ?',
   )
+  const deleteCompleted = db.query<null, [number]>(
+    'DELETE FROM tasks WHERE user_id = ? AND done = 1',
+  )
 
   const toTask = (row: TaskFields): Task => ({
     id: row.id,
@@ -104,6 +107,7 @@ export function createStore(db: Database) {
         return toTask(taskById.get(id, userId) as TaskFields)
       },
       remove: (userId: number, id: number): boolean => deleteTask.run(id, userId).changes > 0,
+      removeCompleted: (userId: number): number => deleteCompleted.run(userId).changes,
     },
   }
 }

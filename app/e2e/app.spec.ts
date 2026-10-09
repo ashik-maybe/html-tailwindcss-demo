@@ -130,3 +130,21 @@ test('search narrows the list by title or project', async ({ page }) => {
   await expect(page.getByText('Alpha report')).toBeVisible()
   await expect(page.getByText('Beta chores')).toBeVisible()
 })
+
+test('clears completed tasks in one action', async ({ page }) => {
+  await signUp(page, uniqueEmail())
+  const add = async (title: string) => {
+    await page.getByLabel('New task title').fill(title)
+    await page.getByRole('button', { name: 'Add' }).click()
+    await expect(page.getByText(title)).toBeVisible()
+  }
+  await add('Keep this')
+  await add('Finish this')
+
+  await page.getByRole('checkbox', { name: /Finish this/ }).click()
+  await page.getByRole('button', { name: /Clear completed/ }).click()
+
+  await expect(page.getByText('Finish this')).toHaveCount(0)
+  await expect(page.getByText('Keep this')).toBeVisible()
+  await expect(page.getByRole('button', { name: /Clear completed/ })).toHaveCount(0)
+})

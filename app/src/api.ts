@@ -41,4 +41,5 @@ export const api = {
   updateTask: (id: number, patch: TaskPatch) =>
     request<{ task: Task }>('PATCH', `/api/tasks/${id}`, patch),
   deleteTask: (id: number) => request<null>('DELETE', `/api/tasks/${id}`),
+  clearCompleted: () => request<{ removed: number }>('DELETE', '/api/tasks/completed'),
 }

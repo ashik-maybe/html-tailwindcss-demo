@@ -39,6 +39,12 @@ export function registerTaskRoutes(app: Hono<AppEnv>, store: Store) {
     return c.json({ task })
   })
 
+  // Registered before '/api/tasks/:id' so "completed" isn't read as an id.
+  app.delete('/api/tasks/completed', requireAuth(store), (c) => {
+    const removed = store.tasks.removeCompleted(c.get('user').id)
+    return c.json({ removed })
+  })
+
   app.delete('/api/tasks/:id', requireAuth(store), (c) => {
     const removed = store.tasks.remove(c.get('user').id, Number(c.req.param('id')))
     if (!removed) return c.json({ error: 'Task not found' }, 404)

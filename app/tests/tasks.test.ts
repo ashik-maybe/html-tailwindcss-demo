@@ -104,4 +104,25 @@ describe('tasks API', () => {
     expect(res.status).toBe(204)
     expect(await listTasks(aliceCookie)).toHaveLength(0)
   })
+
+  test('clears only your own completed tasks', async () => {
+    const done = (await (await createTask(aliceCookie, { title: 'Done' })).json()) as {
+      task: Task
+    }
+    await createTask(aliceCookie, { title: 'Open' })
+    await app.request(
+      `/api/tasks/${done.task.id}`,
+      authed(aliceCookie, { method: 'PATCH', body: JSON.stringify({ done: true }) }),
+    )
+
+    const res = await app.request(
+      '/api/tasks/completed',
+      authed(aliceCookie, { method: 'DELETE' }),
+    )
+    expect(res.status).toBe(200)
+    expect(((await res.json()) as { removed: number }).removed).toBe(1)
+    const remaining = await listTasks(aliceCookie)
+    expect(remaining).toHaveLength(1)
+    expect(remaining[0].title).toBe('Open')
+  })
 })

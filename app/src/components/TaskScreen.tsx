@@ -88,6 +88,15 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
     }
   }
 
+  async function clearCompleted() {
+    try {
+      await api.clearCompleted()
+      setTasks((prev) => prev.filter((t) => !t.done))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
   const counts = useMemo<Record<Filter, number>>(
     () => ({
       all: tasks.length,
@@ -184,6 +193,16 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
               </button>
             ))}
           </div>
+
+          {counts.done > 0 && (
+            <button
+              type="button"
+              onClick={clearCompleted}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+            >
+              Clear completed ({counts.done})
+            </button>
+          )}
 
           <div className="relative w-full sm:ml-auto sm:w-64">
             <input
