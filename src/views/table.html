@@ -2,7 +2,7 @@
      VIEW: DATA MANAGEMENT TABLE
      =============================================================================
      Lessons on this page:
-       1. toolbar          search input (icon-inset) + status filter chips
+       1. toolbar          search input (icon-inset) + role combobox + status chips
        2. responsive table overflow-x-auto wrapper + min-w-full
        3. zebra striping   even:bg-gray-50 (CSS nth-child — zero JS)
        4. status pills     rounded-full micro-badges (Active/Inactive)
@@ -43,26 +43,56 @@
          sm:justify-between pushes chips to the far right.
          ====================================================================== -->
   <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <!-- SEARCH INPUT — icon INSIDE the field.
-         relative on the wrapper = positioning context for the icon.
-         pl-9 on the input = padding-left 2.25rem, so typed text starts AFTER
-         the icon instead of underneath it. (Classic inset-icon pattern.) -->
-    <div class="relative w-full sm:max-w-xs">
-      <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" aria-hidden="true">
-        🔍
-      </span>
-      <!-- pointer-events-none on the icon span (also above): clicks pass
-           through to the input below — otherwise the icon swallows them. -->
-      <input
-        type="search"
-        data-table-search
-        placeholder="Search name or email…"
-        aria-label="Search team members"
-        class="w-full rounded-xl border border-gray-300 bg-white py-2 pr-4 pl-9 text-sm transition placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-gray-500"
-      />
-      <!-- focus pair: border-color shift + 2px ring glow.
-           focus:outline-none removes the browser default outline BECAUSE the
-           ring replaces it — never remove focus styles without a replacement. (a11y) -->
+    <!-- Left group: search + role combobox. Stacks on phones, side-by-side ≥sm. -->
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <!-- SEARCH INPUT — icon INSIDE the field.
+           relative on the wrapper = positioning context for the icon.
+           pl-9 on the input = padding-left 2.25rem, so typed text starts AFTER
+           the icon instead of underneath it. (Classic inset-icon pattern.) -->
+      <div class="relative w-full sm:max-w-xs">
+        <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" aria-hidden="true">
+          🔍
+        </span>
+        <!-- pointer-events-none on the icon span (also above): clicks pass
+             through to the input below — otherwise the icon swallows them. -->
+        <input
+          type="search"
+          data-table-search
+          placeholder="Search name or email…"
+          aria-label="Search team members"
+          class="w-full rounded-xl border border-gray-300 bg-white py-2 pr-4 pl-9 text-sm transition placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-gray-500"
+        />
+        <!-- focus pair: border-color shift + 2px ring glow.
+             focus:outline-none removes the browser default outline BECAUSE the
+             ring replaces it — never remove focus styles without a replacement. (a11y) -->
+      </div>
+
+      <!-- ROLE FILTER — a real combobox (wireCombobox in src/main.js).
+           role="combobox" + aria-activedescendant: focus STAYS in the input
+           while arrows highlight options — a <select> you can also type into.
+           The <ul> is fixed + hidden; JS reveals and positions it. -->
+      <div class="relative w-full sm:w-44">
+        <input
+          data-role-input
+          type="text"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="table-role-list"
+          aria-autocomplete="list"
+          aria-label="Filter by role"
+          autocomplete="off"
+          placeholder="Any role"
+          class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 pr-8 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500"
+        />
+        <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400" aria-hidden="true">▾</span>
+        <ul
+          id="table-role-list"
+          data-role-list
+          role="listbox"
+          aria-label="Roles"
+          class="hidden fixed z-40 max-h-60 overflow-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+        ></ul>
+      </div>
     </div>
 
     <!-- STATUS CHIPS — toggle-style filters.

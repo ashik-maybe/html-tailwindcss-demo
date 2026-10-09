@@ -33,7 +33,7 @@ the same job a React/Vue router does, in ~20 lines you can actually read.
 | --- | --- | --- |
 | Landing / Hero | `src/views/landing.html` | Hero, feature grid, gradient text, footer |
 | SaaS Dashboard | `src/views/dashboard.html` | Stats cards, CSS bar chart, dropdown, activity feed |
-| Data Table | `src/views/table.html` | Search + status chips, **real 42-row dataset with pagination**, empty state, row actions |
+| Data Table | `src/views/table.html` | Search + status chips + **role combobox**, **real 42-row dataset with pagination**, empty state, row actions |
 | AI Chat | `src/views/chat.html` | Viewport-filling flex, bubbles, slide-over history with canned threads, XSS-safe send |
 | Settings | `src/views/settings.html` | Arrow-key tablist, dirty-tracking profile form, native `<dialog>`, toggle switches |
 | Loading & States | `src/views/states.html` | Skeletons, empty state, `role="alert"` error, toasts |

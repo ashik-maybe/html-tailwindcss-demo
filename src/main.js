@@ -314,18 +314,43 @@ function initTable(root) {
   const card = root.querySelector('[data-table-card]')
   const chips = [...root.querySelectorAll('[data-status-filter]')]
 
+  // ROLE FILTER — a real combobox (wireCombobox). It plugs into the same
+  // `render()` state as the chips and search: every filter is just state.
+  const roleInput = root.querySelector('[data-role-input]')
+  const roleList = root.querySelector('[data-role-list]')
+  const roleCombo =
+    roleInput && roleList
+      ? wireCombobox({
+          input: roleInput,
+          listbox: roleList,
+          value: 'all',
+          options: [
+            { value: 'all', label: 'Any role' },
+            { value: 'Admin', label: 'Admin' },
+            { value: 'Editor', label: 'Editor' },
+            { value: 'Viewer', label: 'Viewer' },
+          ],
+          onChange: (v) => {
+            role = v
+            page = 1
+            render()
+          },
+        })
+      : null
+
   // State lives in the CLOSURE, not module scope: the view re-injects on
   // every visit, and a module-level `page = 5` would greet the next visit.
   // Closure state dies with the subtree it belongs to.
   const PAGE_SIZE = 8
   let query = ''
   let status = 'all'
+  let role = 'all'
   let page = 1
 
-  // AND between status chip and text query — both must pass. (Same rule the
-  // old filter had; only the "keep some rows" part became "build some rows".)
+  // AND between every filter: status chip, role combobox and text query.
   const matches = (m) =>
     (status === 'all' || m.status === status) &&
+    (role === 'all' || m.role === role) &&
     `${m.name} ${emailOf(m)} ${m.role}`.toLowerCase().includes(query)
 
   function render() {
@@ -424,6 +449,8 @@ function initTable(root) {
     search.value = ''
     query = ''
     status = 'all'
+    role = 'all'
+    roleCombo?.set('all') // keep the visible field in sync with the state
     page = 1
     setActiveChip(chips[0])
     render()
@@ -1114,6 +1141,168 @@ function initStates(root) {
 }
 
 // -----------------------------------------------------------------------------
+// wireCombobox — the WAI-ARIA combobox (input + listbox), reusable
+// -----------------------------------------------------------------------------
+// The key insight versus the MENU above: DOM focus STAYS in the text input the
+// whole time. The highlighted option is communicated with aria-activedescendant
+// ("this option is active"), NOT by moving real focus into the list. That's what
+// lets you keep typing while arrowing through suggestions.
+//
+// Used twice: the lab demo (components.html) and the table's role filter.
+// options = [{ value, label }]; onChange(value, label) fires on commit.
+// Returns { set(value) } so callers can reset the field programmatically.
+function wireCombobox({ input, listbox, options, value, onChange, emptyText = 'No matches' }) {
+  const BASE = 'cursor-pointer rounded-lg px-3 py-2 text-sm'
+  const optId = (i) => `${listbox.id}-opt-${i}`
+  const labelOf = (v) => options.find((o) => o.value === v)?.label ?? ''
+
+  let filtered = options
+  let active = -1
+  let selected = value ?? options[0]?.value ?? null
+  let open = false
+
+  function render() {
+    if (!filtered.length) {
+      listbox.innerHTML = `<li role="option" aria-disabled="true" class="${BASE} cursor-default text-gray-400 dark:text-gray-500">${emptyText}</li>`
+      return
+    }
+    // aria-selected marks the COMMITTED value; the active (keyboard-highlighted)
+    // option is conveyed by aria-activedescendant on the input instead.
+    listbox.innerHTML = filtered
+      .map(
+        (o, i) =>
+          `<li id="${optId(i)}" role="option" data-value="${escapeHtml(o.value)}" aria-selected="${o.value === selected}" class="${BASE}">${escapeHtml(o.label)}</li>`,
+      )
+      .join('')
+  }
+
+  function paint() {
+    ;[...listbox.children].forEach((li, i) => {
+      if (!filtered[i]) return
+      const chosen = filtered[i].value === selected
+      const isActive = i === active
+      li.className = `${BASE} ${
+        chosen
+          ? 'bg-brand-50 text-brand-700 dark:bg-gray-800 dark:text-brand-300'
+          : isActive
+            ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+      }`
+    })
+  }
+
+  function setActive(i) {
+    if (!filtered.length) {
+      input.removeAttribute('aria-activedescendant')
+      return
+    }
+    active = (i + filtered.length) % filtered.length // wrap like every menu
+    input.setAttribute('aria-activedescendant', optId(active))
+    paint()
+    listbox.children[active]?.scrollIntoView({ block: 'nearest' })
+  }
+
+  function openList() {
+    if (open) return
+    open = true
+    filtered = options // opening shows EVERYTHING; typing narrows
+    active = Math.max(0, options.findIndex((o) => o.value === selected))
+    render()
+    listbox.classList.remove('hidden')
+    // Match the field's width so the popup reads as part of the control.
+    listbox.style.width = `${Math.round(input.getBoundingClientRect().width)}px`
+    paint()
+    const opts = { placement: 'bottom-start', offset: 4 }
+    positionAnchored(input, listbox, opts)
+    trackFloat(listbox, input, opts)
+    registerOverlay(listbox, { close: () => closeList(false), trigger: input })
+    input.setAttribute('aria-expanded', 'true')
+    if (filtered.length) input.setAttribute('aria-activedescendant', optId(active))
+  }
+
+  function closeList(refocus) {
+    if (!open) return
+    open = false
+    listbox.classList.add('hidden')
+    input.setAttribute('aria-expanded', 'false')
+    input.removeAttribute('aria-activedescendant')
+    untrackFloat(listbox)
+    unregisterOverlay(listbox)
+    input.value = labelOf(selected) // revert half-typed text to the committed label
+    if (refocus) input.focus()
+  }
+
+  function choose(opt) {
+    selected = opt.value
+    input.value = opt.label
+    onChange?.(opt.value, opt.label)
+    closeList(false)
+    input.focus()
+  }
+
+  input.addEventListener('click', () => {
+    if (!open) openList()
+  })
+
+  input.addEventListener('input', () => {
+    if (!open) openList() // open FIRST (openList shows all) — then narrow
+    const q = input.value.trim().toLowerCase()
+    filtered = options.filter((o) => o.label.toLowerCase().includes(q))
+    active = 0
+    render()
+    paint()
+    if (filtered.length) input.setAttribute('aria-activedescendant', optId(0))
+    else input.removeAttribute('aria-activedescendant')
+  })
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      open ? setActive(active + 1) : openList()
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      open ? setActive(active - 1) : openList()
+    } else if (event.key === 'Enter') {
+      if (open && filtered.length) {
+        event.preventDefault() // don't submit a surrounding form on selection
+        choose(filtered[active])
+      }
+    } else if (event.key === 'Home' && open) {
+      event.preventDefault()
+      setActive(0)
+    } else if (event.key === 'End' && open) {
+      event.preventDefault()
+      setActive(filtered.length - 1)
+    }
+    // Escape: the global overlay handler closes the top overlay → this list.
+  })
+
+  // mousedown preventDefault: clicking an option must NOT blur the input first,
+  // or focusout would hide the list before the click ever lands (classic race).
+  listbox.addEventListener('mousedown', (event) => event.preventDefault())
+
+  listbox.addEventListener('click', (event) => {
+    const li = event.target.closest('[role="option"][data-value]')
+    if (!li) return
+    const opt = options.find((o) => o.value === li.dataset.value)
+    if (opt) choose(opt)
+  })
+
+  input.addEventListener('focusout', (event) => {
+    if (!listbox.contains(event.relatedTarget)) closeList(false)
+  })
+
+  input.value = labelOf(selected) // paint the initial committed value
+
+  return {
+    set(v) {
+      selected = v
+      input.value = labelOf(v)
+    },
+  }
+}
+
+// -----------------------------------------------------------------------------
 // initComponents — popover + accessible menu (components.html)
 // -----------------------------------------------------------------------------
 // Two disclosure widgets share the overlay stack above. Both:
@@ -1146,7 +1335,7 @@ function initComponents(root) {
       popTrigger.setAttribute('aria-expanded', 'true')
       positionAnchored(popTrigger, popPanel, opts)
       trackFloat(popPanel, popTrigger, opts)
-      registerOverlay(popPanel, { close: () => closePopover(true), trigger: popTrigger })
+      registerOverlay(popPanel, { close: () => closePopover(true), dismiss: () => closePopover(false), trigger: popTrigger })
       // Move focus IN: content reachable only by mouse isn't a disclosure. (a11y)
       popPanel.querySelector('input, button, select, textarea, a[href]')?.focus()
     }
@@ -1202,7 +1391,7 @@ function initComponents(root) {
       menuTrigger.setAttribute('aria-expanded', 'true')
       positionAnchored(menuTrigger, menuPanel, opts)
       trackFloat(menuPanel, menuTrigger, opts)
-      registerOverlay(menuPanel, { close: () => closeMenu(true), trigger: menuTrigger })
+      registerOverlay(menuPanel, { close: () => closeMenu(true), dismiss: () => closeMenu(false), trigger: menuTrigger })
       setActive(0) // menu contract: opening focuses the FIRST item
     }
 
@@ -1249,6 +1438,31 @@ function initComponents(root) {
     // Tab/click away dismisses without yanking focus back to the trigger.
     menuPanel.addEventListener('focusout', (event) => {
       if (!menuPanel.contains(event.relatedTarget)) closeMenu(false)
+    })
+  }
+
+  // --- Combobox: type-to-filter, arrowing keeps focus in the input --------
+  const comboInput = root.querySelector('[data-combobox-input]')
+  const comboList = root.querySelector('[data-combobox-list]')
+  if (comboInput && comboList) {
+    const out = root.querySelector('[data-combobox-out]')
+    wireCombobox({
+      input: comboInput,
+      listbox: comboList,
+      value: 'react',
+      options: [
+        { value: 'react', label: 'React' },
+        { value: 'preact', label: 'Preact' },
+        { value: 'vue', label: 'Vue' },
+        { value: 'svelte', label: 'Svelte' },
+        { value: 'solid', label: 'Solid' },
+        { value: 'angular', label: 'Angular' },
+        { value: 'astro', label: 'Astro' },
+        { value: 'qwik', label: 'Qwik' },
+      ],
+      onChange: (_value, label) => {
+        if (out) out.textContent = `Selected: ${label}`
+      },
     })
   }
 }
@@ -1353,11 +1567,14 @@ function closeAllOverlays() {
 // Outside-click close. Newest first: a nested menu dismisses before the popover
 // that hosts it. A click on the overlay's OWN trigger counts as inside — the
 // trigger is what opened it, and re-clicking should toggle, not double-close.
+// `dismiss` (not `close`) = dismiss WITHOUT yanking focus back to the trigger:
+// the click already chose a new focus target, so refocusing would fight it.
 document.addEventListener('click', (event) => {
   ;[...overlayStack].reverse().forEach((el) => {
     const info = overlayInfo.get(el)
     if (el.contains(event.target) || info?.trigger?.contains(event.target)) return
-    info?.close()
+    // Prefer the no-refocus dismiss; comboboxes only define `close`.
+    ;(info?.dismiss ?? info?.close)?.()
   })
 })
 

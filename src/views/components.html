@@ -207,5 +207,48 @@
       </div>
     </section>
 
+    <!-- =========================== COMBOBOX =========================== -->
+    <section aria-labelledby="combobox-title">
+      <h2 id="combobox-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+        Combobox — a field that suggests
+      </h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Part text input, part select: type to filter, then arrow through matches.
+        The trick is that
+        <code class="font-mono text-[13px]">aria-activedescendant</code> reports
+        the highlighted option while DOM focus never leaves the input — so you can
+        keep typing mid-navigation. Enter commits, Escape reverts to the last
+        chosen label. The <code class="font-mono text-[13px]">.table</code> view's
+        role filter is this exact component.
+      </p>
+
+      <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div class="max-w-xs">
+          <label for="cb-framework" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Framework</label>
+          <input
+            id="cb-framework"
+            data-combobox-input
+            type="text"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="cb-framework-list"
+            aria-autocomplete="list"
+            autocomplete="off"
+            placeholder="Type to filter…"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500"
+          />
+          <!-- listbox rendered by wireCombobox(): options + "No matches" -->
+          <ul
+            id="cb-framework-list"
+            data-combobox-list
+            role="listbox"
+            aria-label="Frameworks"
+            class="hidden fixed z-40 max-h-60 overflow-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+          ></ul>
+        </div>
+        <p data-combobox-out class="mt-3 text-sm text-gray-500 dark:text-gray-400">Selected: React</p>
+      </div>
+    </section>
+
   </div>
 </div>
