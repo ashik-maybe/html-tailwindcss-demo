@@ -58,17 +58,38 @@
 
       <span class="text-sm font-semibold text-brand-600 dark:text-brand-400">Tailwind v4 Library</span>
 
-      <!-- Small-screen dark toggle (the sidebar's copy is hidden below lg). -->
-      <button
-        id="theme-toggle-mobile"
-        type="button"
-        aria-label="Toggle dark mode"
-        class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100
-               focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none
-               dark:text-gray-400 dark:hover:bg-gray-800"
-      >
-        <span aria-hidden="true">◐</span>
-      </button>
+      <!-- Right-side actions grouped so the header keeps its hamburger · brand ·
+           actions layout. The Lessons link is a REAL <a>, not a data-view button:
+           that's because the teaching pages are standalone documents (full page
+           navigation), not SPA views. It duplicates the sidebar's "Learn" link
+           here so it's reachable below lg, where the sidebar is a hidden drawer. -->
+      <div class="flex items-center gap-1">
+        <a
+          href="./src/learning/index.html"
+          aria-label="Start learning"
+          class="flex items-center gap-1.5 rounded-lg p-2 text-sm font-medium text-gray-500 transition
+                 hover:bg-gray-100 hover:text-gray-900
+                 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none
+                 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+        >
+          <span aria-hidden="true">📚</span>
+          <!-- Hide the word on the narrowest phones — the icon alone (with its
+               aria-label) is enough, and this keeps the brand from being pushed. -->
+          <span class="hidden sm:inline">Learn</span>
+        </a>
+
+        <!-- Small-screen dark toggle (the sidebar's copy is hidden below lg). -->
+        <button
+          id="theme-toggle-mobile"
+          type="button"
+          aria-label="Toggle dark mode"
+          class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100
+                 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none
+                 dark:text-gray-400 dark:hover:bg-gray-800"
+        >
+          <span aria-hidden="true">◐</span>
+        </button>
+      </div>
     </header>
 
     <!-- =============================================================================
