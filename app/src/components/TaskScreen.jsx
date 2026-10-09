@@ -43,11 +43,17 @@ export default function TaskScreen({ user, onLogout }) {
     }
   }
 
+  // Optimistic: flip the checkbox immediately, then reconcile with the server.
+  // If the request fails we roll back and surface the error — the UI never
+  // silently disagrees with the database.
   async function toggleTask(task) {
+    const optimistic = { ...task, done: !task.done }
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? optimistic : t)))
     try {
-      const { task: updated } = await api.updateTask(task.id, { done: !task.done })
+      const { task: updated } = await api.updateTask(task.id, { done: optimistic.done })
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
     } catch (err) {
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)))
       setError(err.message)
     }
   }
