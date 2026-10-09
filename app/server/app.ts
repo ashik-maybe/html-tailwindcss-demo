@@ -3,6 +3,7 @@ import { registerAuthRoutes } from './auth'
 import { registerTaskRoutes } from './tasks'
 import type { Store } from './store'
 import type { AppEnv } from './types'
+import { createRateLimiter } from './rateLimit'
 
 // The Hono app is built here (not in index.ts) so tests can import it and use
 // `app.request(...)` without ever opening a port. index.ts only wires it to
@@ -10,9 +11,11 @@ import type { AppEnv } from './types'
 export function createApp({
   store,
   secureCookies = false,
+  authRateLimit,
 }: {
   store: Store
   secureCookies?: boolean
+  authRateLimit?: { windowMs?: number; max?: number }
 }): Hono<AppEnv> {
   const app = new Hono<AppEnv>()
 
@@ -31,6 +34,16 @@ export function createApp({
     )
     await next()
   })
+
+  // Apply rate limiting to auth write endpoints if configured.
+  if (authRateLimit) {
+    const limiter = createRateLimiter({
+      windowMs: authRateLimit.windowMs ?? 60_000,
+      max: authRateLimit.max ?? 20,
+    })
+    app.use('/api/auth/login', limiter)
+    app.use('/api/auth/register', limiter)
+  }
 
   app.get('/api/health', (c) => c.json({ ok: true }))
   registerAuthRoutes(app, store, { secureCookies })
