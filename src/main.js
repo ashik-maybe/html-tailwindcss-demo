@@ -28,6 +28,11 @@ import faq from './views/faq.html?raw'
 import states from './views/states.html?raw'
 import components from './views/components.html?raw'
 
+// Pure helpers live in src/lib/ — no DOM, unit-tested with Vitest (tests/).
+import { escapeHtml, emailOf, initialsOf } from './lib/format.js'
+import { filterMembers, pageWindow } from './lib/table.js'
+import { computePosition } from './lib/position.js'
+
 // Entry shape: { html, init? }. init(root) runs after the HTML is injected
 // and gets the fresh subtree — attach DIRECT listeners there to widgets that
 // only exist while that view is on screen (chat form, settings tabs/modal).
@@ -186,12 +191,10 @@ document.addEventListener('click', (event) => {
 // every real table — swap MEMBERS for an API response and nothing below
 // changes.
 //
-// escapeHtml is defined ONCE at module scope and shared by chat + table.
-// Escape even "trusted" strings: the habit costs nothing and survives the
-// day the data stops being ours.
+// escapeHtml (and emailOf / initialsOf) live in src/lib/format.js — pure string
+// helpers, unit-tested in tests/format.test.js. Escape even "trusted" strings:
+// the habit costs nothing and survives the day the data stops being ours.
 // -----------------------------------------------------------------------------
-const escapeHtml = (s) =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 // Avatars cycle a fixed palette by member INDEX — Ava is indigo on every
 // render, page and filter combo. Math, not random(): random() would repaint
@@ -251,19 +254,12 @@ const MEMBERS = [
   { name: 'Petra Novak', role: 'Viewer', status: 'inactive', last: '5 months ago', team: ['E'] },
 ] // 42 members: 33 active, 9 inactive → 42 / 8 per page = 6 pages
 
-const emailOf = (m) => `${m.name.toLowerCase().replace(/[^a-z0-9]+/g, '.')}@nimbus.io`
-
 // One row → one <tr> string. `i` = index in MEMBERS (avatar colour stability),
 // NOT the slice position: page 2 must not repaint the faces page 1 built.
 function rowHtml(m, i) {
   const name = escapeHtml(m.name)
   const email = escapeHtml(emailOf(m))
-  const initials = m.name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  const initials = initialsOf(m.name)
   const pill =
     m.status === 'active'
       ? '<span class="inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">Active</span>'
@@ -347,20 +343,15 @@ function initTable(root) {
   let role = 'all'
   let page = 1
 
-  // AND between every filter: status chip, role combobox and text query.
-  const matches = (m) =>
-    (status === 'all' || m.status === status) &&
-    (role === 'all' || m.role === role) &&
-    `${m.name} ${emailOf(m)} ${m.role}`.toLowerCase().includes(query)
-
+  // Filtering + paging maths live in src/lib/table.js — pure functions with
+  // their own unit tests. This function only owns the DOM: read state, compute,
+  // paint. (The AND-logic across chip / combobox / query is in filterMembers.)
   function render() {
-    const list = MEMBERS.filter(matches)
-    const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE))
-    page = Math.min(page, pages) // filter shrank the list → climb back in range
+    const list = filterMembers(MEMBERS, { query, status, role })
+    const pageInfo = pageWindow(list.length, page, PAGE_SIZE)
+    page = pageInfo.page // filter shrank the list → climb back in range
 
-    const from = list.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
-    const to = Math.min(page * PAGE_SIZE, list.length)
-    const start = list.length === 0 ? 0 : from - 1
+    const { from, to, start, pages } = pageInfo
 
     // Rows rebuilt from scratch on every state change — that is what makes
     // the plain even:bg-gray-50 nth-child striping in rowHtml trustworthy: a
@@ -1485,32 +1476,16 @@ function initComponents(root) {
 // FLIP  = if the chosen side overflows the viewport, use the other side.
 // SHIFT = clamp horizontally so the box never runs off-screen.
 // This is a ~30-line version of what Floating UI / Popper resolve in hundreds.
+// The geometry itself lives in src/lib/position.js (computePosition) so it can
+// be unit-tested with plain rect objects; this wrapper only reads the real DOM
+// rects and writes the result back to style.
 function positionAnchored(anchor, floating, options = {}) {
-  const { placement = 'bottom-start', offset = 8, margin = 8 } = options
-  const [side, align = 'center'] = placement.split('-')
-  const a = anchor.getBoundingClientRect()
-  const f = floating.getBoundingClientRect()
-
-  // --- vertical: requested side, then flip if it would overflow ---
-  const roomBelow = window.innerHeight - a.bottom
-  const roomAbove = a.top
-  let top
-  if (side === 'top') {
-    top = a.top - f.height - offset
-    if (top < margin && roomBelow >= roomAbove) top = a.bottom + offset
-  } else {
-    top = a.bottom + offset
-    if (top + f.height > window.innerHeight - margin && roomAbove > roomBelow) {
-      top = a.top - f.height - offset
-    }
-  }
-
-  // --- horizontal: align, then shift to stay inside the viewport ---
-  let left
-  if (align === 'end') left = a.right - f.width
-  else if (align === 'center') left = a.left + (a.width - f.width) / 2
-  else left = a.left
-  left = Math.max(margin, Math.min(left, window.innerWidth - f.width - margin))
+  const { left, top } = computePosition({
+    anchor: anchor.getBoundingClientRect(),
+    floating: floating.getBoundingClientRect(),
+    viewport: { width: window.innerWidth, height: window.innerHeight },
+    ...options,
+  })
 
   floating.style.position = 'fixed'
   floating.style.left = `${Math.round(left)}px`
