@@ -111,6 +111,11 @@ Start the lessons in your browser: open the app (`index.html`) and click
 2. Add TypeScript to that project.
 3. Take the repo README's five exercises, then ship a small product of your own.
 
+**A worked full-stack example:** [`app/`](app) is a task manager with a Bun +
+Hono API, SQLite, cookie sessions, and a React client, plus its own unit and
+e2e tests. Read it top to bottom when you reach this stage — it is the whole
+Stage-3 checklist (framework, routing, state, auth, database) in one small app.
+
 ---
 
 ## The repo's own exercises

@@ -10,6 +10,9 @@ platform already does before reaching for libraries.
 three-track roadmap in [GETTING-STARTED.md](GETTING-STARTED.md). Start there,
 then come back to the pattern library.
 
+**Ready for the backend?** [`app/`](#full-stack-app-app) is a full-stack task
+manager — Bun + Hono API, SQLite, cookie sessions, and a React client.
+
 ## Quick start
 
 ```bash
@@ -88,6 +91,33 @@ bun run check         # lint + unit tests + build
   the table, the ⌘K palette, dark-mode persistence, the learning link, and all
   four Live Data states (the API is mocked with `page.route`).
 - First local e2e run needs browsers: `bunx playwright install chromium`.
+
+## Full-stack app (`app/`)
+
+The pattern library is deliberately static. `app/` is the other half: a real
+**task manager** with a backend, authentication, and a database — the same
+release every web product needs.
+
+- **Stack:** Bun + [Hono](https://hono.dev) API, SQLite via `bun:sqlite`
+  (no ORM), React 19 + Vite + Tailwind v4 client.
+- **Auth:** passwords hashed with Argon2 (`Bun.password`), random session id in
+  an `httpOnly` / `SameSite=Lax` cookie, sessions stored in the DB so they can
+  be revoked. Every task query is scoped by `user_id`.
+- **API:** `POST /api/auth/register|login|logout`, `GET /api/auth/me`, and
+  `GET|POST|PATCH|DELETE /api/tasks` (all task routes require a session).
+
+```bash
+cd app
+bun install
+bun run dev      # API on :5181 + client on :5180 (Vite proxies /api)
+bun run test     # API unit tests (Bun's test runner)
+bun run test:e2e # Playwright: real browser against the real API
+bun run build && bun run start   # one process serves API + built client
+```
+
+Layout: `app/server/` (Hono app, auth, tasks, db, store) · `app/src/` (React) ·
+`app/tests/` (API tests) · `app/e2e/` (browser flows). CI in
+`.github/workflows/app.yml` runs lint, unit, e2e, and build on `app/` changes.
 
 ## Suggested reading order
 

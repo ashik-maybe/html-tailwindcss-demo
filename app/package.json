@@ -9,8 +9,8 @@
     "build": "vite build",
     "start": "NODE_ENV=production bun server/index.js",
     "lint": "eslint .",
-    "test": "bun test",
-    "test:watch": "bun test --watch",
+    "test": "bun test tests",
+    "test:watch": "bun test tests --watch",
     "test:e2e": "playwright test"
   },
   "dependencies": {
