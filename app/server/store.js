@@ -11,7 +11,9 @@ export function createStore(db) {
   const userById = db.query('SELECT id, email, created_at FROM users WHERE id = ?')
 
   const insertSession = db.query('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
-  const sessionById = db.query('SELECT id, user_id, expires_at FROM sessions WHERE id = ?')
+  const sessionById = db.query(
+    "SELECT id, user_id, expires_at FROM sessions WHERE id = ? AND expires_at > datetime('now')",
+  )
   const deleteSession = db.query('DELETE FROM sessions WHERE id = ?')
   const deleteExpired = db.query("DELETE FROM sessions WHERE expires_at <= datetime('now')")
 

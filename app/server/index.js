@@ -1,7 +1,12 @@
 import { serveStatic } from 'hono/bun'
 import { createApp } from './app.js'
+import { openDb } from './db.js'
+import { createStore } from './store.js'
 
-const app = createApp()
+const store = createStore(openDb())
+store.sessions.removeExpired() // drop stale sessions on boot
+
+const app = createApp({ store, secureCookies: process.env.COOKIE_SECURE === '1' })
 
 // In production the same Bun process serves the built React client, so one
 // `bun run start` gives you API + UI on one port. In dev, Vite serves the UI
