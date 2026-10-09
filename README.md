@@ -107,7 +107,8 @@ release every web product needs.
 - **API:** `POST /api/auth/register|login|logout`, `GET /api/auth/me`, and
   `GET|POST|PATCH|DELETE /api/tasks` (all task routes require a session).
 - **Features:** create / inline-edit / complete / delete tasks, project tags,
-  due dates with overdue highlighting, and All / Active / Done filters.
+  due dates with overdue highlighting, search, sort (newest / due / title),
+  group by project, clear-completed, and All / Active / Done filters.
 
 ```bash
 cd app

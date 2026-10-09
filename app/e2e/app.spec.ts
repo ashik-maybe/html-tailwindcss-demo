@@ -173,3 +173,27 @@ test('sorts by title and by due date', async ({ page }) => {
   await expect(page.locator('li p').nth(0)).toHaveText('Bravo')
   await expect(page.locator('li p').nth(1)).toHaveText('Alpha')
 })
+
+test('groups tasks by project on demand', async ({ page }) => {
+  await signUp(page, uniqueEmail())
+  const add = async (title: string, project: string) => {
+    await page.getByLabel('New task title').fill(title)
+    await page.getByLabel('New task project').fill(project)
+    await page.getByRole('button', { name: 'Add' }).click()
+    await expect(page.getByText(title)).toBeVisible()
+  }
+  await add('Write report', 'Work')
+  await add('Buy milk', 'Home')
+  await add('Loose task', '')
+
+  await page.getByRole('button', { name: 'Group by project' }).click()
+  const headings = page.locator('section h2')
+  await expect(headings.nth(0)).toContainText('Home')
+  await expect(headings.nth(1)).toContainText('Work')
+  await expect(headings.nth(2)).toContainText('No project')
+  await expect(page.getByText('Write report')).toBeVisible()
+
+  // Toggling off returns to the flat list with no section headings.
+  await page.getByRole('button', { name: 'Group by project' }).click()
+  await expect(page.locator('section h2')).toHaveCount(0)
+})

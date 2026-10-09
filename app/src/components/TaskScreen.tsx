@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api'
+import { groupByProject } from '../group'
 import { sortTasks } from '../sort'
 import type { Filter, SortKey, Task, TaskPatch, User } from '../types'
 import TaskItem from './TaskItem'
@@ -19,6 +20,7 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [sort, setSort] = useState<SortKey>('created')
+  const [grouped, setGrouped] = useState(false)
   const [query, setQuery] = useState('')
   const [title, setTitle] = useState('')
   const [project, setProject] = useState('')
@@ -122,6 +124,16 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
     sort,
   )
 
+  const renderItem = (task: Task) => (
+    <TaskItem
+      key={task.id}
+      task={task}
+      onToggle={toggleTask}
+      onUpdate={updateTask}
+      onDelete={deleteTask}
+    />
+  )
+
   return (
     <div className="min-h-full bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
@@ -209,6 +221,17 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
             </button>
           )}
 
+          <button
+            type="button"
+            aria-pressed={grouped}
+            onClick={() => setGrouped((v) => !v)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${
+              grouped ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Group by project
+          </button>
+
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
@@ -259,18 +282,19 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
                   : 'Try a different filter.'}
             </p>
           </div>
-        ) : (
-          <ul className="space-y-2">
-            {visible.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onToggle={toggleTask}
-                onUpdate={updateTask}
-                onDelete={deleteTask}
-              />
+        ) : grouped ? (
+          <div className="space-y-6">
+            {groupByProject(visible).map((group) => (
+              <section key={group.key || '_none'}>
+                <h2 className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                  {group.label} ({group.tasks.length})
+                </h2>
+                <ul className="space-y-2">{group.tasks.map(renderItem)}</ul>
+              </section>
             ))}
-          </ul>
+          </div>
+        ) : (
+          <ul className="space-y-2">{visible.map(renderItem)}</ul>
         )}
       </main>
     </div>
