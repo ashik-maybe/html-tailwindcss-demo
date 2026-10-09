@@ -1,22 +1,32 @@
 import { useEffect, useState } from 'react'
+import { api } from './api.js'
+import AuthScreen from './components/AuthScreen.jsx'
+import TaskScreen from './components/TaskScreen.jsx'
 
-// Scaffold: proves the client and API are wired. Replaced by the real task UI.
+// Top level = "who am I?" It asks the API once on load (the httpOnly cookie
+// travels automatically), then shows either the auth screen or the task board.
 export default function App() {
-  const [health, setHealth] = useState('checking…')
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/health')
-      .then((r) => r.json())
-      .then((d) => setHealth(d.ok ? 'API connected' : 'API error'))
-      .catch(() => setHealth('API unreachable'))
+    api
+      .me()
+      .then(({ user }) => setUser(user))
+      .catch(() => setUser(null)) // 401 just means "not signed in yet"
+      .finally(() => setLoading(false))
   }, [])
 
-  return (
-    <main className="grid min-h-full place-items-center bg-gray-50 p-8">
-      <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900">Task Manager</h1>
-        <p className="mt-2 text-sm text-gray-500">{health}</p>
-      </div>
-    </main>
-  )
+  if (loading) {
+    return (
+      <main className="grid min-h-full place-items-center bg-gray-50">
+        <p className="text-sm text-gray-500" role="status">
+          Loading…
+        </p>
+      </main>
+    )
+  }
+
+  if (!user) return <AuthScreen onAuth={setUser} />
+  return <TaskScreen user={user} onLogout={() => setUser(null)} />
 }
