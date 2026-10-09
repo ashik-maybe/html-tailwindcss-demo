@@ -5,6 +5,11 @@ twelve commented page patterns you can read, break, and copy into real projects.
 No framework, no build magic beyond Vite: the goal is to show what the
 platform already does before reaching for libraries.
 
+**New to HTML or Tailwind?** There is a beginner-to-advanced teaching track in
+[`src/learning/`](src/learning/index.html) — ten standalone lessons — plus a full
+three-track roadmap in [GETTING-STARTED.md](GETTING-STARTED.md). Start there,
+then come back to the pattern library.
+
 ## Quick start
 
 ```bash
@@ -12,6 +17,8 @@ bun install     # or: npm install
 bun run dev     # dev server at http://localhost:5173
 bun run build   # output → dist/
 ```
+
+Then open `/src/learning/index.html` for the guided lessons, or `/` for the app.
 
 ## How it works
 
@@ -59,6 +66,8 @@ In the repo settings set **Pages → Source: GitHub Actions**.
 
 ## Suggested reading order
 
+0. [GETTING-STARTED.md](GETTING-STARTED.md) + [`src/learning/`](src/learning/index.html) —
+   the guided path. Skip if the views already make sense.
 1. `index.html` — the shell and why an SPA needs one.
 2. `src/style.css` — v4's CSS-first config in ~120 lines.
 3. `src/main.js` top half — registry + `switchView` + delegation.
@@ -107,6 +116,9 @@ what they compile to:
 loading/error states from real APIs (the States view is the UI half),
 Git workflows, and accessibility — screen-reader testing with NVDA/VoiceOver
 once is worth a hundred `aria-` comments.
+
+For the full roadmap with checkpoints, projects, and resources for each stage,
+see [GETTING-STARTED.md](GETTING-STARTED.md).
 
 ## License
 
