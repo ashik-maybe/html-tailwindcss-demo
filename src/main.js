@@ -45,7 +45,7 @@ const views = {
   blog: { html: blog, init: initBlog }, // category pills filter + newsletter
   faq: { html: faq }, // native <details>, zero JS by design
   states: { html: states, init: initStates },
-  components: { html: components }, // overlays & pickers: tooltip ships (delegated); popover/menu/combobox get init in 13b/13c
+  components: { html: components, init: initComponents }, // overlays & pickers
 }
 
 // Element references — query once at load, reuse forever.
@@ -1114,6 +1114,146 @@ function initStates(root) {
 }
 
 // -----------------------------------------------------------------------------
+// initComponents — popover + accessible menu (components.html)
+// -----------------------------------------------------------------------------
+// Two disclosure widgets share the overlay stack above. Both:
+//   - toggle from a trigger whose aria-expanded tracks reality
+//   - position with the same engine as tooltips (positionAnchored)
+//   - close on Escape (top-down) and outside-click (global handlers)
+//   - return focus to the trigger, so keyboard users never lose their place
+// The MENU additionally implements roving tabindex + arrow keys + typeahead —
+// the WAI-ARIA menu pattern. (The dashboard profile dropdown stays the simple
+// version on purpose: this view is where you compare against the correct one.)
+function initComponents(root) {
+  // --- Popover: a disclosure holding INTERACTIVE content ------------------
+  const popTrigger = root.querySelector('[data-popover-trigger]')
+  const popPanel = root.querySelector('[data-popover-panel]')
+
+  if (popTrigger && popPanel) {
+    const opts = { placement: 'bottom-start', offset: 8 }
+
+    const closePopover = (refocus) => {
+      if (popPanel.classList.contains('hidden')) return
+      popPanel.classList.add('hidden')
+      popTrigger.setAttribute('aria-expanded', 'false')
+      untrackFloat(popPanel)
+      unregisterOverlay(popPanel)
+      if (refocus) popTrigger.focus()
+    }
+
+    const openPopover = () => {
+      popPanel.classList.remove('hidden')
+      popTrigger.setAttribute('aria-expanded', 'true')
+      positionAnchored(popTrigger, popPanel, opts)
+      trackFloat(popPanel, popTrigger, opts)
+      registerOverlay(popPanel, { close: () => closePopover(true), trigger: popTrigger })
+      // Move focus IN: content reachable only by mouse isn't a disclosure. (a11y)
+      popPanel.querySelector('input, button, select, textarea, a[href]')?.focus()
+    }
+
+    popTrigger.addEventListener('click', () =>
+      popPanel.classList.contains('hidden') ? openPopover() : closePopover(true),
+    )
+
+    // Tab past the last control → focus leaves the panel → dismiss. A non-modal
+    // popover should not linger behind an invisible focused element.
+    popPanel.addEventListener('focusout', (event) => {
+      if (!popPanel.contains(event.relatedTarget) && event.relatedTarget !== popTrigger) {
+        closePopover(false)
+      }
+    })
+
+    popPanel.querySelector('[data-popover-close]')?.addEventListener('click', () => {
+      showToast('Display options applied')
+      closePopover(true)
+    })
+  }
+
+  // --- Menu: the full WAI-ARIA menu keyboard contract ---------------------
+  const menuTrigger = root.querySelector('[data-menu-trigger]')
+  const menuPanel = root.querySelector('[data-menu-panel]')
+
+  if (menuTrigger && menuPanel) {
+    const items = [...menuPanel.querySelectorAll('[role="menuitem"]')]
+    const opts = { placement: 'bottom-start', offset: 6 }
+    let activeIndex = 0
+
+    // Roving tabindex: exactly ONE item stays in the tab order (the active
+    // one); arrows move focus between them. Same idea as the settings tablist.
+    const setActive = (i) => {
+      activeIndex = (i + items.length) % items.length
+      items.forEach((item, n) => {
+        item.tabIndex = n === activeIndex ? 0 : -1
+      })
+      items[activeIndex].focus()
+    }
+
+    const closeMenu = (refocus) => {
+      if (menuPanel.classList.contains('hidden')) return
+      menuPanel.classList.add('hidden')
+      menuTrigger.setAttribute('aria-expanded', 'false')
+      untrackFloat(menuPanel)
+      unregisterOverlay(menuPanel)
+      if (refocus) menuTrigger.focus()
+    }
+
+    const openMenu = () => {
+      menuPanel.classList.remove('hidden')
+      menuTrigger.setAttribute('aria-expanded', 'true')
+      positionAnchored(menuTrigger, menuPanel, opts)
+      trackFloat(menuPanel, menuTrigger, opts)
+      registerOverlay(menuPanel, { close: () => closeMenu(true), trigger: menuTrigger })
+      setActive(0) // menu contract: opening focuses the FIRST item
+    }
+
+    menuTrigger.addEventListener('click', () =>
+      menuPanel.classList.contains('hidden') ? openMenu() : closeMenu(true),
+    )
+
+    menuPanel.addEventListener('keydown', (event) => {
+      const key = event.key
+      if (key === 'ArrowDown') {
+        event.preventDefault() // arrows must not scroll the page
+        setActive(activeIndex + 1)
+      } else if (key === 'ArrowUp') {
+        event.preventDefault()
+        setActive(activeIndex - 1)
+      } else if (key === 'Home') {
+        event.preventDefault()
+        setActive(0)
+      } else if (key === 'End') {
+        event.preventDefault()
+        setActive(items.length - 1)
+      } else if (key.length === 1 && key.trim()) {
+        // Typeahead: jump to the next item starting with the typed character.
+        const letter = key.toLowerCase()
+        for (let step = 1; step <= items.length; step++) {
+          const i = (activeIndex + step) % items.length
+          if (items[i].textContent.trim().toLowerCase().startsWith(letter)) {
+            event.preventDefault()
+            setActive(i)
+            break
+          }
+        }
+      }
+      // Enter/Space need no code: role=menuitem on a <button> fires click natively.
+    })
+
+    items.forEach((item) => {
+      item.addEventListener('click', () => {
+        showToast(`${item.textContent.trim()} — demo action`)
+        closeMenu(true)
+      })
+    })
+
+    // Tab/click away dismisses without yanking focus back to the trigger.
+    menuPanel.addEventListener('focusout', (event) => {
+      if (!menuPanel.contains(event.relatedTarget)) closeMenu(false)
+    })
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Anchored overlays — the positioning engine
 // -----------------------------------------------------------------------------
 // A tooltip, a popover, a menu and the combobox listbox are the SAME animal:
@@ -1175,6 +1315,51 @@ const repositionFloats = () =>
 // (the table's `overflow-x-auto` box), not just the page itself.
 window.addEventListener('scroll', repositionFloats, true)
 window.addEventListener('resize', repositionFloats)
+
+// -----------------------------------------------------------------------------
+// Overlay stack — one Escape-to-close order for NESTED overlays
+// -----------------------------------------------------------------------------
+// A menu can open inside a popover, which can open inside a dialog. Escape must
+// close the TOPMOST only, or a single keypress tears down the whole stack and
+// the user loses their place. This registry answers "what's open, newest last?"
+// and is shared by Escape AND outside-click — so both routes agree.
+//
+// WeakMap for the per-overlay closer (avoids leaks when views are wiped), plus
+// an array for ordering (WeakMaps aren't iterable).
+const overlayStack = [] // open overlay elements, oldest → newest
+const overlayInfo = new WeakMap() // el → { close, trigger }
+
+function registerOverlay(el, info) {
+  overlayInfo.set(el, info)
+  overlayStack.push(el)
+}
+function unregisterOverlay(el) {
+  const i = overlayStack.indexOf(el)
+  if (i !== -1) overlayStack.splice(i, 1)
+  overlayInfo.delete(el)
+}
+// Returns true when an overlay handled the close — callers use that to STOP
+// (Escape shouldn't also close the drawer behind it).
+function closeTopOverlay() {
+  const el = overlayStack[overlayStack.length - 1]
+  if (!el) return false
+  overlayInfo.get(el)?.close()
+  return true
+}
+function closeAllOverlays() {
+  ;[...overlayStack].reverse().forEach((el) => overlayInfo.get(el)?.close())
+}
+
+// Outside-click close. Newest first: a nested menu dismisses before the popover
+// that hosts it. A click on the overlay's OWN trigger counts as inside — the
+// trigger is what opened it, and re-clicking should toggle, not double-close.
+document.addEventListener('click', (event) => {
+  ;[...overlayStack].reverse().forEach((el) => {
+    const info = overlayInfo.get(el)
+    if (el.contains(event.target) || info?.trigger?.contains(event.target)) return
+    info?.close()
+  })
+})
 
 // -----------------------------------------------------------------------------
 // Tooltips — hover AND focus, app-wide (delegated)
@@ -1261,6 +1446,9 @@ document.addEventListener('focusout', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return
   hideTooltip()
+  // Nested overlays (popover/menu/combobox) dismiss TOP-DOWN first; if one
+  // handled this Escape, the shell-level layers stay put.
+  if (closeTopOverlay()) return
   closeDrawer()
   closePalette() // hoisted function declaration below — safe to call
   // Also collapse any open dropdown (same rules as outside-click close;
