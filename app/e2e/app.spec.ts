@@ -74,3 +74,26 @@ test('a wrong password shows an error', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page.getByRole('alert')).toContainText('Incorrect email or password')
 })
+
+test('edits a task inline, and Escape cancels', async ({ page }) => {
+  await signUp(page, uniqueEmail())
+  await page.getByLabel('New task title').fill('Old title')
+  await page.getByLabel('New task project').fill('old-project')
+  await page.getByRole('button', { name: 'Add' }).click()
+  await expect(page.getByText('Old title')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Edit "Old title"' }).click()
+  await page.getByLabel('Edit task title').fill('New title')
+  await page.getByLabel('Edit task project').fill('new-project')
+  await page.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByText('New title')).toBeVisible()
+  await expect(page.getByText('new-project')).toBeVisible()
+  await expect(page.getByText('Old title')).toHaveCount(0)
+
+  // Escape closes edit mode without saving.
+  await page.getByRole('button', { name: 'Edit "New title"' }).click()
+  await page.getByLabel('Edit task title').fill('Discarded')
+  await page.getByLabel('Edit task title').press('Escape')
+  await expect(page.getByText('New title')).toBeVisible()
+  await expect(page.getByText('Discarded')).toHaveCount(0)
+})

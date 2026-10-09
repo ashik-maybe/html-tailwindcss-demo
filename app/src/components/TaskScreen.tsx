@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api'
-import type { Filter, Task, User } from '../types'
+import type { Filter, Task, TaskPatch, User } from '../types'
 import TaskItem from './TaskItem'
 
 const inputClass =
@@ -56,6 +56,19 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
     } catch (err) {
       setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)))
       setError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  // Returns whether the save succeeded, so TaskItem knows to leave edit mode.
+  // On failure we keep the draft open and let the parent show the error.
+  async function updateTask(task: Task, patch: TaskPatch): Promise<boolean> {
+    try {
+      const { task: updated } = await api.updateTask(task.id, patch)
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+      return false
     }
   }
 
@@ -168,7 +181,13 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
         ) : (
           <ul className="space-y-2">
             {visible.map((task) => (
-              <TaskItem key={task.id} task={task} onToggle={toggleTask} onDelete={deleteTask} />
+              <TaskItem
+                key={task.id}
+                task={task}
+                onToggle={toggleTask}
+                onUpdate={updateTask}
+                onDelete={deleteTask}
+              />
             ))}
           </ul>
         )}
