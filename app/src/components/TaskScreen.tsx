@@ -17,6 +17,7 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+  const [query, setQuery] = useState('')
   const [title, setTitle] = useState('')
   const [project, setProject] = useState('')
   const [due, setDue] = useState('')
@@ -96,9 +97,16 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
     [tasks],
   )
 
-  const visible = tasks.filter(
-    (t) => filter === 'all' || (filter === 'active' ? !t.done : t.done),
-  )
+  const needle = query.trim().toLowerCase()
+
+  const visible = tasks.filter((t) => {
+    const matchesFilter = filter === 'all' || (filter === 'active' ? !t.done : t.done)
+    const matchesQuery =
+      !needle ||
+      t.title.toLowerCase().includes(needle) ||
+      t.project.toLowerCase().includes(needle)
+    return matchesFilter && matchesQuery
+  })
 
   return (
     <div className="min-h-full bg-gray-50">
@@ -158,22 +166,45 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
           </p>
         )}
 
-        <div className="flex gap-1.5" role="group" aria-label="Filter tasks">
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              aria-pressed={filter === f.id}
-              onClick={() => setFilter(f.id)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${
-                filter === f.id
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {f.label} ({counts[f.id]})
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-1.5" role="group" aria-label="Filter tasks">
+            {FILTERS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                aria-pressed={filter === f.id}
+                onClick={() => setFilter(f.id)}
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${
+                  filter === f.id
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {f.label} ({counts[f.id]})
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full sm:ml-auto sm:w-64">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search tasks…"
+              aria-label="Search tasks"
+              className={`${inputClass} pr-9`}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="Clear search"
+                className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-lg px-2 py-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
 
         {loading ? (
@@ -188,7 +219,9 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
             <p className="mt-1 text-sm text-gray-500">
               {tasks.length === 0
                 ? 'Add your first task above to get started.'
-                : 'Try a different filter.'}
+                : needle
+                  ? 'No tasks match your search.'
+                  : 'Try a different filter.'}
             </p>
           </div>
         ) : (

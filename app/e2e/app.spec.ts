@@ -105,3 +105,28 @@ test('a task shows its due date', async ({ page }) => {
   await page.getByRole('button', { name: 'Add' }).click()
   await expect(page.getByText(/Due\b.*15/)).toBeVisible()
 })
+
+test('search narrows the list by title or project', async ({ page }) => {
+  await signUp(page, uniqueEmail())
+  const add = async (title: string, project: string) => {
+    await page.getByLabel('New task title').fill(title)
+    await page.getByLabel('New task project').fill(project)
+    await page.getByRole('button', { name: 'Add' }).click()
+    await expect(page.getByText(title)).toBeVisible()
+  }
+  await add('Alpha report', 'work')
+  await add('Beta chores', 'home')
+
+  const search = page.getByLabel('Search tasks')
+  await search.fill('alpha') // matches a title
+  await expect(page.getByText('Alpha report')).toBeVisible()
+  await expect(page.getByText('Beta chores')).toHaveCount(0)
+
+  await search.fill('home') // matches a project
+  await expect(page.getByText('Beta chores')).toBeVisible()
+  await expect(page.getByText('Alpha report')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Clear search' }).click()
+  await expect(page.getByText('Alpha report')).toBeVisible()
+  await expect(page.getByText('Beta chores')).toBeVisible()
+})
