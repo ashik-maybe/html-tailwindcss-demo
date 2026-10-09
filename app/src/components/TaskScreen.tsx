@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { api } from '../api'
-import type { Filter, Task, TaskPatch, User } from '../types'
+import { sortTasks } from '../sort'
+import type { Filter, SortKey, Task, TaskPatch, User } from '../types'
 import TaskItem from './TaskItem'
 
 const inputClass =
@@ -17,6 +18,7 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+  const [sort, setSort] = useState<SortKey>('created')
   const [query, setQuery] = useState('')
   const [title, setTitle] = useState('')
   const [project, setProject] = useState('')
@@ -108,14 +110,17 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
 
   const needle = query.trim().toLowerCase()
 
-  const visible = tasks.filter((t) => {
-    const matchesFilter = filter === 'all' || (filter === 'active' ? !t.done : t.done)
-    const matchesQuery =
-      !needle ||
-      t.title.toLowerCase().includes(needle) ||
-      t.project.toLowerCase().includes(needle)
-    return matchesFilter && matchesQuery
-  })
+  const visible = sortTasks(
+    tasks.filter((t) => {
+      const matchesFilter = filter === 'all' || (filter === 'active' ? !t.done : t.done)
+      const matchesQuery =
+        !needle ||
+        t.title.toLowerCase().includes(needle) ||
+        t.project.toLowerCase().includes(needle)
+      return matchesFilter && matchesQuery
+    }),
+    sort,
+  )
 
   return (
     <div className="min-h-full bg-gray-50">
@@ -204,7 +209,18 @@ export default function TaskScreen({ user, onLogout }: { user: User; onLogout: (
             </button>
           )}
 
-          <div className="relative w-full sm:ml-auto sm:w-64">
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            aria-label="Sort tasks"
+            className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none sm:ml-auto"
+          >
+            <option value="created">Newest first</option>
+            <option value="due">Due date</option>
+            <option value="title">Title A–Z</option>
+          </select>
+
+          <div className="relative w-full sm:w-64">
             <input
               type="search"
               value={query}

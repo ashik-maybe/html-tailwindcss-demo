@@ -23,3 +23,5 @@ export type TaskInput = {
 export type TaskPatch = Partial<Pick<Task, 'title' | 'project' | 'due' | 'done'>>
 
 export type Filter = 'all' | 'active' | 'done'
+
+export type SortKey = 'created' | 'due' | 'title'

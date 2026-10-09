@@ -148,3 +148,28 @@ test('clears completed tasks in one action', async ({ page }) => {
   await expect(page.getByText('Keep this')).toBeVisible()
   await expect(page.getByRole('button', { name: /Clear completed/ })).toHaveCount(0)
 })
+
+test('sorts by title and by due date', async ({ page }) => {
+  await signUp(page, uniqueEmail())
+  const add = async (title: string, due: string) => {
+    await page.getByLabel('New task title').fill(title)
+    await page.getByLabel('New task due date').fill(due)
+    await page.getByRole('button', { name: 'Add' }).click()
+    await expect(page.getByText(title)).toBeVisible()
+  }
+  await add('Alpha', '2030-02-01') // alphabetically first, due later
+  await add('Bravo', '2030-01-01') // alphabetically second, due sooner
+
+  await page.getByLabel('Sort tasks').selectOption('title')
+  await expect(page.locator('li p').nth(0)).toHaveText('Alpha')
+  await expect(page.locator('li p').nth(1)).toHaveText('Bravo')
+
+  await page.getByLabel('Sort tasks').selectOption('due')
+  await expect(page.locator('li p').nth(0)).toHaveText('Bravo')
+  await expect(page.locator('li p').nth(1)).toHaveText('Alpha')
+
+  // Completed tasks sink to the bottom whatever the sort key.
+  await page.getByRole('checkbox', { name: /Alpha/ }).click()
+  await expect(page.locator('li p').nth(0)).toHaveText('Bravo')
+  await expect(page.locator('li p').nth(1)).toHaveText('Alpha')
+})
