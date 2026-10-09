@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>10 · Architecture &amp; frameworks</title>
+  </head>
+
+  <!--
+    LESSON 10 — Architecture & frameworks
+    =====================================
+    The last lesson zooms out: how a pile of pages becomes an app, and where
+    frameworks (React, Vue) fit. By the end you should be able to read this
+    repo's src/main.js as an architecture, not a mystery — and know what to
+    learn next.
+  -->
+  <body class="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <header class="sticky top-0 z-20 border-b border-gray-200/70 bg-white/85 backdrop-blur dark:border-gray-800/70 dark:bg-gray-950/85">
+      <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
+        <a href="./index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">← Learn</a>
+        <span data-stage class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"></span>
+        <div class="flex items-center gap-2">
+          <a href="../../index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">App</a>
+          <button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800">◐</button>
+        </div>
+      </div>
+      <div class="h-0.5 bg-gray-100 dark:bg-gray-800"><div data-progress class="h-full bg-brand-500" style="width: 0"></div></div>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-4 py-10">
+      <p class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Advanced · Lesson 10</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Architecture &amp; frameworks</h1>
+      <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+        An <strong>application</strong> is a page minus the reload. Its core idea
+        is simple and old: keep the chrome fixed, swap the content, and let a
+        router decide which content shows for which URL. The pattern library you
+        have been reading is exactly that, built in about 20 lines.
+      </p>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">The three pieces of any app</h2>
+        <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+              <tr><th class="px-3 py-2 font-medium">Piece</th><th class="px-3 py-2 font-medium">Job</th><th class="px-3 py-2 font-medium">In this repo</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr><td class="px-3 py-2 font-medium">Router</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">URL/in-memory id → which view</td><td class="px-3 py-2 font-mono text-[12px] text-gray-600 dark:text-gray-300">switchView()</td></tr>
+              <tr><td class="px-3 py-2 font-medium">Views</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">The screen's markup</td><td class="px-3 py-2 font-mono text-[12px] text-gray-600 dark:text-gray-300">src/views/*.html</td></tr>
+              <tr><td class="px-3 py-2 font-medium">State</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">Data + how it is painted</td><td class="px-3 py-2 font-mono text-[12px] text-gray-600 dark:text-gray-300">initTable(), initShop()…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          The mantra is <strong>UI = f(state)</strong>: the screen is a function
+          of your data. When a bug shows something stale, the fix is almost
+          always "repaint from state".
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Components: stop copy-pasting</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          When the same markup appears three times, make a function that takes
+          data and returns an element. That function is a <strong>component</strong>.
+          Its input is called <strong>props</strong>.
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>function userCard(user) {
+  const el = document.createElement('div')
+  el.className = 'rounded-xl border p-4'
+  const h = document.createElement('h3')
+  h.textContent = user.name
+  const p = document.createElement('p')
+  p.textContent = user.role
+  el.append(h, p)
+  return el
+}
+
+users.forEach((u) =&gt; list.append(userCard(u)))</code></pre>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Notice <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">textContent</code>
+          again: a component that feeds user data into <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">innerHTML</code>
+          is an XSS bug waiting to happen.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Routing: make the URL honest</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          The app swaps views in memory, so the URL never changes — delightful
+          for a demo, wrong for a real app (no shareable links, broken back
+          button). The fix is two lines and one listener:
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>function go(id) {
+  location.hash = '#/' + id    // updates the URL
+}
+
+window.addEventListener('hashchange', () =&gt; {
+  switchView(location.hash.replace('#/', '') || 'landing')
+})</code></pre>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          This is exercise #1 in the repo README — do it and the SPA suddenly has
+          real links and a working back button.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Where frameworks fit</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          React and Vue do not invent new ideas. They automate the parts you just
+          did by hand — and they're worth it once state gets complicated.
+        </p>
+        <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+              <tr><th class="px-3 py-2 font-medium">You wrote</th><th class="px-3 py-2 font-medium">Framework equivalent</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr><td class="px-3 py-2 font-mono text-[12px]">switchView()</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">React Router / Vue Router</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">registry[id].html</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">a component map / routes file</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">init(root)</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">useEffect() / onMounted()</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">render() from state</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">re-render on state change</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">userCard(props)</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">a component with props</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Learn <strong>one</strong>, not all. React transfers most directly;
+          Vue reads a lot like this markup. Everything you learned here — events,
+          state, a11y, tokens — carries over unchanged.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">The rest of the job</h2>
+        <ul class="mt-3 list-disc space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li><strong>TypeScript</strong> — JavaScript with types; catches whole classes of bugs before you run anything.</li>
+          <li><strong>Testing</strong> — unit tests (Vitest) and an end-to-end browser test (Playwright) for the one flow that must never break.</li>
+          <li><strong>Tooling &amp; CI</strong> — a formatter and linter, plus a pipeline that builds on every push (this repo deploys via GitHub Actions).</li>
+          <li><strong>Performance</strong> — measure, don't guess: the browser's Lighthouse panel and DevTools performance tab.</li>
+          <li><strong>Accessibility</strong> — lesson 9, practiced on every real project, not once.</li>
+        </ul>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">The honest ceiling</h2>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-5 text-sm leading-6 text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+          <p>
+            This curriculum teaches the <strong>pattern</strong> track: how real
+            UI is structured and why. Reaching "build any modern UI" also needs
+            hands-on CSS depth (you: break and rebuild layouts until flexbox is
+            instinct) and real JavaScript practice (build small apps with data).
+            No single repo gets you there — reps do.
+          </p>
+          <p class="mt-2">
+            The full three-track roadmap — with checkpoints and projects — lives in
+            <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">GETTING-STARTED.md</code>
+            in the repo. Read it next.
+          </p>
+        </div>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Final exercise</h2>
+        <ol class="mt-3 list-decimal space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li>Add hash routing (above) to the app and confirm links and the back button work.</li>
+          <li>Extract one view's repeated markup into a component function with props.</li>
+          <li>Port the sidebar + one view into React or Vue. Ship it somewhere.</li>
+          <li>Then come back and re-read <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">src/main.js</code> — it will read like a diagram.</li>
+        </ol>
+      </section>
+
+      <nav id="lesson-nav"></nav>
+    </main>
+
+    <script type="module" src="./learn.js"></script>
+  </body>
+</html>

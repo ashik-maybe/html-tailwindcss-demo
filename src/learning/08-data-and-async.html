@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>08 · Data &amp; async</title>
+  </head>
+
+  <!--
+    LESSON 08 — Data & async
+    ========================
+    Real apps load data from servers. That takes time, so it is asynchronous:
+    you ask, then later you get an answer. Every request has four possible
+    endings — loading, success, empty, error — and a good UI handles all four.
+    The live demo below simulates a request so it works offline.
+  -->
+  <body class="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <header class="sticky top-0 z-20 border-b border-gray-200/70 bg-white/85 backdrop-blur dark:border-gray-800/70 dark:bg-gray-950/85">
+      <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
+        <a href="./index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">← Learn</a>
+        <span data-stage class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"></span>
+        <div class="flex items-center gap-2">
+          <a href="../../index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">App</a>
+          <button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800">◐</button>
+        </div>
+      </div>
+      <div class="h-0.5 bg-gray-100 dark:bg-gray-800"><div data-progress class="h-full bg-brand-500" style="width: 0"></div></div>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-4 py-10">
+      <p class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Advanced · Lesson 8</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Data &amp; async</h1>
+      <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+        JavaScript runs one thing at a time. If it sat and waited for the
+        network, the page would freeze. So requests are
+        <strong>asynchronous</strong>: you start them and attach what to do when
+        they finish. The tool for this is <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">async</code>/<code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">await</code>.
+      </p>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">A Promise is "a value, later"</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          The browser's <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">fetch()</code>
+          returns a <strong>Promise</strong>: an object representing a value that
+          isn't ready yet. It either <em>resolves</em> (works) or <em>rejects</em>
+          (fails). <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">await</code>
+          pauses just this function until the Promise settles, without freezing the page.
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>async function loadUsers() {
+  try {
+    const res = await fetch('/api/users')
+    if (!res.ok) throw new Error('Request failed: ' + res.status)
+    return await res.json()
+  } catch (error) {
+    // network down, bad status, bad JSON — all end up here
+    throw error
+  }
+}</code></pre>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">The four states of a request</h2>
+        <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+              <tr><th class="px-3 py-2 font-medium">State</th><th class="px-3 py-2 font-medium">What the user should see</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr><td class="px-3 py-2 font-medium">Loading</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">A skeleton or spinner — never a blank screen</td></tr>
+              <tr><td class="px-3 py-2 font-medium">Success</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">The data</td></tr>
+              <tr><td class="px-3 py-2 font-medium">Empty</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">"Nothing here yet" + a next step</td></tr>
+              <tr><td class="px-3 py-2 font-medium">Error</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">A plain message + a Retry button</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          The app's <strong>Loading &amp; States</strong> view is the visual half
+          of this. A single <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">render(status)</code>
+          function keeps the screen honest with the state.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Race conditions &amp; cancellation</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          If a user fires two requests and the first is slower, a stale response
+          can overwrite a fresh one. Two defences:
+        </p>
+        <ul class="mt-3 list-disc space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li><code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">AbortController</code> — cancel the in-flight request when a new one starts or the view closes.</li>
+          <li>A token/guard — check the request is still the latest before painting its result.</li>
+        </ul>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>let controller
+
+async function load() {
+  controller?.abort()          // cancel the previous request
+  controller = new AbortController()
+  const mine = controller
+
+  const data = await fetchUsers({ signal: controller.signal })
+  if (mine !== controller) return   // a newer request started — drop this result
+  render(data)
+}</code></pre>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Live example — a simulated request</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          No server here — <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">setTimeout</code>
+          pretends to be the network. Tick "fail" to see the error state.
+        </p>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex flex-wrap items-center gap-3">
+            <button id="load-btn" type="button" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]">Load users</button>
+            <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <input id="fail-toggle" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600" />
+              Simulate failure
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <input id="empty-toggle" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600" />
+              Simulate empty
+            </label>
+          </div>
+          <div id="result" class="mt-4" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Exercise</h2>
+        <ol class="mt-3 list-decimal space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li>Add a fake delay slider so the loading state is longer.</li>
+          <li>Make the Retry button re-run the last request with the same options.</li>
+          <li>Wire a real <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">fetch('https://jsonplaceholder.typicode.com/users')</code> behind a flag, keeping the same four states.</li>
+          <li>Confirm that clicking "Load" twice quickly never shows the older result.</li>
+        </ol>
+      </section>
+
+      <nav id="lesson-nav"></nav>
+    </main>
+
+    <script>
+      ;(function () {
+        const btn = document.querySelector('#load-btn')
+        const fail = document.querySelector('#fail-toggle')
+        const empty = document.querySelector('#empty-toggle')
+        const out = document.querySelector('#result')
+
+        // Pretend to be a network call: resolves after ~900ms, or rejects.
+        function fetchUsers({ failRequest, emptyResult } = {}) {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              if (failRequest) reject(new Error('Server is down (simulated)'))
+              else if (emptyResult) resolve([])
+              else resolve([{ name: 'Ada Lovelace' }, { name: 'Alan Turing' }, { name: 'Grace Hopper' }])
+            }, 900)
+          })
+        }
+
+        function render(node) {
+          out.replaceChildren(node)
+        }
+
+        function loading() {
+          out.innerHTML =
+            '<div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400"><span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-brand-500 motion-reduce:animate-none"></span> Loading…</div>'
+        }
+
+        function success(users) {
+          const ul = document.createElement('ul')
+          ul.className = 'space-y-2'
+          users.forEach((u) => {
+            const li = document.createElement('li')
+            li.className = 'rounded-lg border bg-white px-4 py-2 text-sm dark:border-gray-700 dark:bg-gray-800'
+            li.textContent = u.name // textContent, never innerHTML, for data
+            ul.append(li)
+          })
+          render(ul)
+        }
+
+        function emptyState() {
+          const p = document.createElement('p')
+          p.className = 'text-sm text-gray-500 dark:text-gray-400'
+          p.textContent = 'No users yet.'
+          render(p)
+        }
+
+        function errorState(message) {
+          const wrap = document.createElement('div')
+          wrap.className = 'rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300'
+          wrap.textContent = message + ' '
+          const retry = document.createElement('button')
+          retry.type = 'button'
+          retry.textContent = 'Retry'
+          retry.className = 'ml-1 font-semibold underline'
+          retry.addEventListener('click', run)
+          wrap.append(retry)
+          render(wrap)
+        }
+
+        let controller
+        async function run() {
+          controller?.abort()
+          controller = new AbortController()
+          const mine = controller
+
+          loading()
+          try {
+            const users = await fetchUsers({ failRequest: fail.checked, emptyResult: empty.checked })
+            if (mine !== controller) return
+            users.length ? success(users) : emptyState()
+          } catch (error) {
+            if (mine !== controller) return
+            errorState(error.message)
+          }
+        }
+
+        btn.addEventListener('click', run)
+      })()
+    </script>
+    <script type="module" src="./learn.js"></script>
+  </body>
+</html>

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>09 · Accessibility</title>
+  </head>
+
+  <!--
+    LESSON 09 — Accessibility
+    =========================
+    Accessibility (a11y) is building so everyone can use your UI: keyboard
+    users, screen-reader users, people with low vision or motor differences,
+    and future-you on a bad trackpad. It is not a feature; it is part of
+    "correct". The app was built with these rules from phase 1.
+  -->
+  <body class="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <header class="sticky top-0 z-20 border-b border-gray-200/70 bg-white/85 backdrop-blur dark:border-gray-800/70 dark:bg-gray-950/85">
+      <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
+        <a href="./index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">← Learn</a>
+        <span data-stage class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"></span>
+        <div class="flex items-center gap-2">
+          <a href="../../index.html" class="rounded-sm text-sm font-medium text-gray-600 transition hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white">App</a>
+          <button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800">◐</button>
+        </div>
+      </div>
+      <div class="h-0.5 bg-gray-100 dark:bg-gray-800"><div data-progress class="h-full bg-brand-500" style="width: 0"></div></div>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-4 py-10">
+      <p class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Advanced · Lesson 9</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Accessibility</h1>
+      <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+        Most accessibility comes free when you use the right HTML element. ARIA
+        is the patch for when you can't. The order of effort is: semantic HTML →
+        keyboard support → focus management → ARIA, and only then carefully.
+      </p>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Start with semantics</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          A <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">&lt;button&gt;</code>
+          is focusable, keyboard-activatable, and announced as a button — for
+          free. A clickable <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">&lt;div&gt;</code>
+          is none of those. Same pixels, very different experience.
+        </p>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Live example — try Tab. Only the first is reachable</p>
+          <div class="mt-3 flex flex-wrap gap-4">
+            <button type="button" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none" onclick="this.textContent = 'clicked (' + (parseInt(this.dataset.n||0)+1) + ')'; this.dataset.n = parseInt(this.dataset.n||0)+1">Real &lt;button&gt; — tabbable</button>
+            <div class="cursor-pointer rounded-lg bg-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">A &lt;div&gt; — not tabbable</div>
+          </div>
+        </div>
+        <ul class="mt-3 list-disc space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li>Use landmarks: <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">header</code>, <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">nav</code>, <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">main</code>, <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">footer</code> — screen readers navigate by them.</li>
+          <li>One <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">h1</code>; headings in order describe the page's outline.</li>
+          <li>Every input has a <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">label</code>; every image has meaningful <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">alt</code> (or <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">alt=""</code> if decorative).</li>
+        </ul>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Keyboard &amp; focus</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Everything clickable must be reachable and operable by keyboard. That
+          means a visible focus style — and never removing it without a
+          replacement. Focus is how keyboard users know where they are.
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>/* Tailwind: a ring that appears only for keyboard focus */
+focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none</code></pre>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <strong>Focus management</strong> is the advanced part: when you open a
+          dialog, move focus into it and return it to the trigger on close; when
+          a single-page app swaps the view, move focus somewhere sensible. The
+          app's <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">switchView()</code>
+          focuses <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">#view</code>; its palette traps focus and restores it.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">ARIA — the patch, not the plan</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          ARIA attributes tell assistive tech things the HTML alone doesn't say.
+          There are two kinds — <em>roles</em> ("this is a menu") and
+          <em>states</em> ("it is currently expanded"). States change as the UI
+          changes, so JS must keep them in sync.
+        </p>
+        <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+              <tr><th class="px-3 py-2 font-medium">Attribute</th><th class="px-3 py-2 font-medium">Says</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr><td class="px-3 py-2 font-mono text-[12px]">aria-expanded</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">a disclosure is open/closed</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">aria-pressed</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">a toggle is on/off</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">aria-current="page"</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">this nav link is the active page</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">aria-describedby</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">extra description (error text, tooltip)</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">aria-live="polite"</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">announce this region when it changes</td></tr>
+              <tr><td class="px-3 py-2 font-mono text-[12px]">aria-label</td><td class="px-3 py-2 text-gray-600 dark:text-gray-300">a name for an icon-only control</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Two rules of thumb: <em>no ARIA is better than bad ARIA</em>, and the
+          first rule of ARIA is "don't use ARIA if a native element does it".
+          The app's <strong>Overlays &amp; Pickers</strong> view is a tour of
+          doing this correctly — menu, popover, and combobox each keep their
+          states honest.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Live example — an announcement</h2>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          Screen readers can't see a toast appear. A live region is where you put
+          text for them to read aloud. Press the button:
+        </p>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+          <button id="notify" type="button" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none">Do the thing</button>
+          <!-- role="status" implies aria-live="polite" -->
+          <p id="status" role="status" class="mt-3 text-sm text-gray-600 dark:text-gray-300"></p>
+        </div>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100"><code>&lt;p role="status"&gt;&lt;/p&gt;
+
+status.textContent = 'Saved'   // announced without stealing focus</code></pre>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">How to test it</h2>
+        <ul class="mt-3 list-disc space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li><strong>Unplug the mouse.</strong> Can you do everything with Tab, Enter, Space, Escape, and arrows? Can you always see where focus is?</li>
+          <li><strong>Zoom to 200%.</strong> Does the layout survive? Is text still readable?</li>
+          <li><strong>Run axe DevTools</strong> (free browser extension) for automated catches like missing labels and contrast.</li>
+          <li><strong>Use a screen reader once.</strong> VoiceOver (built into macOS) or NVDA (free on Windows). Ten minutes is worth a hundred `aria-` guess.</li>
+        </ul>
+        <p class="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          The app also honors <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">prefers-reduced-motion</code>
+          with one global rule, and ships a "Skip to content" link — press Tab as
+          soon as the app loads and you'll meet it.
+        </p>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Exercise</h2>
+        <ol class="mt-3 list-decimal space-y-1 pl-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+          <li>Take any page you built and do the whole tab pass without a mouse. Fix anything you can't reach.</li>
+          <li>Add an icon-only button and give it an <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">aria-label</code>.</li>
+          <li>Add a toggle that keeps <code class="rounded bg-gray-100 px-1 font-mono text-[13px] dark:bg-gray-800">aria-pressed</code> in sync with its state.</li>
+          <li>Run axe DevTools on the pattern library and fix one finding.</li>
+        </ol>
+      </section>
+
+      <nav id="lesson-nav"></nav>
+    </main>
+
+    <script>
+      ;(function () {
+        const btn = document.querySelector('#notify')
+        const status = document.querySelector('#status')
+        let n = 0
+        btn.addEventListener('click', () => {
+          n += 1
+          status.textContent = 'Done — action ' + n + ' completed at ' + new Date().toLocaleTimeString()
+        })
+      })()
+    </script>
+    <script type="module" src="./learn.js"></script>
+  </body>
+</html>
