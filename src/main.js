@@ -1560,9 +1560,6 @@ function closeTopOverlay() {
   overlayInfo.get(el)?.close()
   return true
 }
-function closeAllOverlays() {
-  ;[...overlayStack].reverse().forEach((el) => overlayInfo.get(el)?.close())
-}
 
 // Outside-click close. Newest first: a nested menu dismisses before the popover
 // that hosts it. A click on the overlay's OWN trigger counts as inside — the
